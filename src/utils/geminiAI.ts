@@ -1,7 +1,7 @@
 
 import { toast } from "@/hooks/use-toast";
 
-const GEMINI_API_KEY = "AIzaSyCk_MvT2AFWY-_jK02Vi9jc_BX-NjNVWRk";
+const GEMINI_API_KEY = "AIzaSyAb9uuBbJnZafJ6wNWpN4wL46-1V4sSwd4";
 const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent";
 
 export interface GeminiResponse {
@@ -16,9 +16,21 @@ export async function generateWithGemini(prompt: string, options: {
   tone?: string;
   dialect?: string;
   voiceStyle?: string;
+  seoOptimize?: boolean;
+  targetLength?: number;
+  contentType?: string;
 } = {}): Promise<GeminiResponse> {
   try {
-    const { temperature = 0.7, maxTokens = 1024, tone = "professional", dialect = "neutral", voiceStyle = "written" } = options;
+    const { 
+      temperature = 0.7, 
+      maxTokens = 1024, 
+      tone = "professional", 
+      dialect = "neutral", 
+      voiceStyle = "written",
+      seoOptimize = false,
+      targetLength = "medium",
+      contentType = "general"
+    } = options;
     
     // Format system message based on options
     let systemMessage = `Bạn là trợ lý viết nội dung AI cho người Việt. Hãy viết nội dung ${tone === "professional" ? "chuyên nghiệp" : tone === "friendly" ? "thân thiện" : tone === "persuasive" ? "thuyết phục" : "trang trọng"}.`;
@@ -34,6 +46,31 @@ export async function generateWithGemini(prompt: string, options: {
     
     // Add voice style
     systemMessage += ` Sử dụng ${voiceStyle === "written" ? "văn viết" : "văn nói"}.`;
+    
+    // Add SEO optimization if selected
+    if (seoOptimize) {
+      systemMessage += " Tối ưu hóa nội dung cho SEO với các heading, từ khóa phù hợp, và cấu trúc tốt cho tìm kiếm.";
+    }
+    
+    // Add target length guideline
+    if (targetLength === "short") {
+      systemMessage += " Viết nội dung ngắn gọn, súc tích, dưới 300 từ.";
+    } else if (targetLength === "medium") {
+      systemMessage += " Viết nội dung vừa phải, khoảng 500-800 từ.";
+    } else if (targetLength === "long") {
+      systemMessage += " Viết nội dung dài, chi tiết, khoảng 1000-1500 từ.";
+    }
+    
+    // Add content type guidance
+    if (contentType === "blog") {
+      systemMessage += " Viết dưới dạng bài blog có cấu trúc rõ ràng với phần giới thiệu, nội dung chính, và kết luận.";
+    } else if (contentType === "social") {
+      systemMessage += " Viết nội dung ngắn gọn, thu hút, phù hợp cho mạng xã hội với emoji và ngôn ngữ tương tác.";
+    } else if (contentType === "email") {
+      systemMessage += " Viết email chuyên nghiệp với lời chào, nội dung chính, và lời kết phù hợp.";
+    } else if (contentType === "product") {
+      systemMessage += " Viết mô tả sản phẩm thu hút, tập trung vào đặc điểm và lợi ích, với lời kêu gọi hành động.";
+    }
     
     const requestBody = {
       contents: [
