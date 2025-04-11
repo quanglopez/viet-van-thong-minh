@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { FileText, Languages, RefreshCw, Settings, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { generateWithGemini } from "@/utils/geminiAI";
 
 const templateCategories = [
   {
@@ -56,7 +56,7 @@ const WritingInterface = () => {
   const [tone, setTone] = useState("professional");
   const [voiceStyle, setVoiceStyle] = useState("written");
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!prompt.trim()) {
       toast({
         title: "Thiếu thông tin",
@@ -68,22 +68,45 @@ const WritingInterface = () => {
     
     setIsGenerating(true);
     
-    // Simulate AI generation
-    setTimeout(() => {
-      const sampleResponses = [
-        "Nhà hàng Hương Việt tự hào giới thiệu thực đơn mới với các món ăn đậm đà hương vị Việt Nam truyền thống. Từ phở bò thơm ngon đến bánh xèo giòn rụm, mỗi món ăn đều được chế biến từ những nguyên liệu tươi ngon nhất, mang đến cho thực khách trải nghiệm ẩm thực đích thực của Việt Nam.",
-        "Căn hộ cao cấp tại The Sunshine Residence sẽ mang đến cho gia đình bạn không gian sống lý tưởng. Với diện tích 85m², gồm 2 phòng ngủ, 2 phòng tắm cùng không gian sinh hoạt chung rộng rãi, căn hộ được thiết kế thông minh, tối ưu công năng sử dụng. Tận hưởng cuộc sống tiện nghi với đầy đủ tiện ích cao cấp: hồ bơi, phòng gym, khu vui chơi trẻ em và an ninh 24/7.",
-        "Khóa học 'Marketing Online Hiệu Quả' cung cấp cho học viên những kiến thức và kỹ năng cần thiết để xây dựng chiến lược marketing số thành công. Chương trình học được thiết kế bởi các chuyên gia hàng đầu với hơn 10 năm kinh nghiệm trong ngành, giúp học viên nắm vững các công cụ digital marketing hiện đại và áp dụng hiệu quả vào thực tiễn kinh doanh."
-      ];
+    try {
+      let effectivePrompt = prompt;
       
-      setGeneratedContent(sampleResponses[Math.floor(Math.random() * sampleResponses.length)]);
-      setIsGenerating(false);
+      if (selectedTemplate && selectedCategory) {
+        effectivePrompt = `[${selectedCategory} - ${selectedTemplate}]\n${prompt}`;
+      }
       
-      toast({
-        title: "Tạo nội dung thành công!",
-        description: "Nội dung của bạn đã được tạo.",
+      const result = await generateWithGemini(effectivePrompt, {
+        temperature: 0.7,
+        maxTokens: 1024,
+        tone,
+        dialect,
+        voiceStyle
       });
-    }, 2000);
+      
+      if (result.error) {
+        toast({
+          title: "Lỗi tạo nội dung",
+          description: result.error,
+          variant: "destructive",
+        });
+        setGeneratedContent("");
+      } else {
+        setGeneratedContent(result.text);
+        toast({
+          title: "Tạo nội dung thành công!",
+          description: "Nội dung của bạn đã được tạo bằng Gemini 1.5 Pro.",
+        });
+      }
+    } catch (error) {
+      console.error("Error generating content:", error);
+      toast({
+        title: "Lỗi hệ thống",
+        description: "Có lỗi xảy ra khi tạo nội dung, vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -92,7 +115,7 @@ const WritingInterface = () => {
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Trải nghiệm công cụ viết nội dung</h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Tạo nội dung chất lượng cao phù hợp với văn hóa Việt Nam chỉ trong vài giây
+            Tạo nội dung chất lượng cao phù hợp với văn hóa Việt Nam chỉ trong vài giây với Gemini 1.5 Pro
           </p>
         </div>
 

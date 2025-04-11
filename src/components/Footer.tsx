@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { Link } from "react-router-dom";
+import { Phone, MapPin } from "lucide-react";
+import { Instagram, Facebook, Twitter, Linkedin, MessageSquare } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -12,6 +14,12 @@ const Footer = () => {
             <p className="text-gray-400 mb-4">
               Công cụ viết nội dung AI được tối ưu hoàn toàn cho tiếng Việt, với các template, giọng điệu và chiến lược phù hợp đặc thù văn hóa địa phương.
             </p>
+            <div className="flex space-x-3 mt-4">
+              <a href="#" className="text-gray-400 hover:text-white"><Facebook size={20} /></a>
+              <a href="#" className="text-gray-400 hover:text-white"><Instagram size={20} /></a>
+              <a href="#" className="text-gray-400 hover:text-white"><Twitter size={20} /></a>
+              <a href="#" className="text-gray-400 hover:text-white"><Linkedin size={20} /></a>
+            </div>
           </div>
           
           <div>
@@ -35,12 +43,20 @@ const Footer = () => {
           </div>
           
           <div>
-            <h4 className="text-lg font-medium mb-4">Công ty</h4>
-            <ul className="space-y-2">
-              <li><Link to="/about" className="text-gray-400 hover:text-white transition-colors">Về chúng tôi</Link></li>
-              <li><Link to="/blog" className="text-gray-400 hover:text-white transition-colors">Blog</Link></li>
-              <li><Link to="/careers" className="text-gray-400 hover:text-white transition-colors">Tuyển dụng</Link></li>
-              <li><Link to="/press" className="text-gray-400 hover:text-white transition-colors">Báo chí</Link></li>
+            <h4 className="text-lg font-medium mb-4">Liên hệ</h4>
+            <ul className="space-y-3">
+              <li className="flex items-center">
+                <Phone size={16} className="mr-2 text-vn-gold" />
+                <a href="tel:0708684608" className="text-gray-400 hover:text-white transition-colors">0708684608</a>
+              </li>
+              <li className="flex items-center">
+                <MessageSquare size={16} className="mr-2 text-vn-gold" />
+                <a href="https://zalo.me/0708684608" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">Zalo: 0708684608</a>
+              </li>
+              <li className="flex items-start">
+                <MapPin size={16} className="mr-2 mt-1 text-vn-gold" />
+                <span className="text-gray-400">Landmark 81, Quận Bình Thạnh, TPHCM</span>
+              </li>
             </ul>
           </div>
         </div>
