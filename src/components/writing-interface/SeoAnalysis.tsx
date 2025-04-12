@@ -23,7 +23,35 @@ const SeoAnalysis: React.FC<SeoAnalysisProps> = ({
     <Card className="p-4">
       <h3 className="text-lg font-medium mb-4">Phân tích SEO</h3>
       
-      <div className="space-y-4">
+      <div className="space-y-6">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <h5 className="font-medium mb-2">Phân tích nội dung</h5>
+            <ul className="space-y-2 text-sm">
+              <li className="flex justify-between">
+                <span>Số từ:</span>
+                <span>{content.split(/\s+/).length}</span>
+              </li>
+              <li className="flex justify-between">
+                <span>Độ dài tiêu đề:</span>
+                <span>{content.split('\n')[0].length} ký tự</span>
+              </li>
+            </ul>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <h5 className="font-medium mb-2">Tối ưu SEO</h5>
+            <ul className="space-y-2 text-sm">
+              <li className="flex justify-between">
+                <span>Meta description:</span>
+                <span>{metrics.titleOptimization}%</span>
+              </li>
+              <li className="flex justify-between">
+                <span>Cấu trúc:</span>
+                <span>{metrics.structureScore}%</span>
+              </li>
+            </ul>
+          </div>
+        </div>
         <div>
           <div className="flex justify-between mb-2">
             <span>Độ dễ đọc</span>

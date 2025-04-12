@@ -84,9 +84,26 @@ const PromptForm: React.FC<PromptFormProps> = ({
             onChange={(e) => setPrompt(e.target.value)}
           />
           {selectedTemplate && (
-            <p className="text-sm text-gray-500">
-              Ví dụ: Tên sản phẩm, đặc điểm, đối tượng khách hàng, ...
-            </p>
+            <div className="space-y-2">
+              <p className="text-sm text-gray-500">
+                Ví dụ: Tên sản phẩm, đặc điểm, đối tượng khách hàng, ...
+              </p>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <span>Gợi ý:</span>
+                <button 
+                  className="px-2 py-1 bg-gray-100 rounded-md hover:bg-gray-200"
+                  onClick={() => setPrompt(prompt + " Tập trung vào điểm mạnh sản phẩm")}
+                >
+                  + Điểm mạnh
+                </button>
+                <button
+                  className="px-2 py-1 bg-gray-100 rounded-md hover:bg-gray-200" 
+                  onClick={() => setPrompt(prompt + " Nhấn mạnh lợi ích cho người dùng")}
+                >
+                  + Lợi ích
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </CardContent>

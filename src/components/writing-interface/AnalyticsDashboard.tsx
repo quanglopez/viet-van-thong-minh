@@ -80,6 +80,33 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ data }) => {
           </ResponsiveContainer>
         </div>
       </Card>
+
+      <Card className="p-6">
+        <h4 className="text-lg font-medium mb-4">Phân tích nội dung theo chủ đề</h4>
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={data.topicAnalysis}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="topic" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="count" 
+                stroke="#8884d8" 
+                name="Số lượng bài viết"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="engagement" 
+                stroke="#82ca9d" 
+                name="Mức độ tương tác"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
     </div>
   );
 };
