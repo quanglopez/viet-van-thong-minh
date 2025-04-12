@@ -1,8 +1,9 @@
 
 import { toast } from "@/hooks/use-toast";
 
-const GEMINI_API_KEY = "AIzaSyAb9uuBbJnZafJ6wNWpN4wL46-1V4sSwd4";
-const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent";
+// Replaced Gemini API with OpenRouter API using Gemini 2.5 Pro Preview model
+const OPENROUTER_API_KEY = ""; // This should be added through Supabase secrets
+const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 export interface GeminiResponse {
   text: string;
@@ -72,47 +73,55 @@ export async function generateWithGemini(prompt: string, options: {
       systemMessage += " Viết mô tả sản phẩm thu hút, tập trung vào đặc điểm và lợi ích, với lời kêu gọi hành động.";
     }
     
-    const requestBody = {
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: systemMessage + "\n\n" + prompt }]
-        }
-      ],
-      generationConfig: {
-        temperature: temperature,
-        maxOutputTokens: maxTokens,
-        topP: 0.9,
-      },
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+      "HTTP-Referer": window.location.origin, // OpenRouter requires this for attribution
+      "X-Title": "VietVan AI Content Generator" // Your app's name
     };
 
-    const response = await fetch(`${API_URL}?key=${GEMINI_API_KEY}`, {
+    const requestBody = {
+      model: "google/gemini-2-5-pro-preview", // Using Gemini 2.5 Pro Preview via OpenRouter
+      messages: [
+        {
+          role: "system",
+          content: systemMessage
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: temperature,
+      max_tokens: maxTokens,
+      top_p: 0.9,
+    };
+
+    const response = await fetch(API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify(requestBody),
     });
 
     const data = await response.json();
     
     if (data.error) {
-      console.error("Gemini API Error:", data.error);
+      console.error("AI API Error:", data.error);
       return {
         text: "",
         error: `Lỗi API: ${data.error.message || "Không thể kết nối đến dịch vụ AI"}`,
       };
     }
 
-    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    const usedTokens = data.usageMetadata?.promptTokenCount + data.usageMetadata?.candidatesTokenCount || 0;
+    const generatedText = data.choices?.[0]?.message?.content || "";
+    const usedTokens = data.usage?.total_tokens || 0;
 
     return {
       text: generatedText,
       usedTokens,
     };
   } catch (error) {
-    console.error("Error calling Gemini API:", error);
+    console.error("Error calling AI API:", error);
     return {
       text: "",
       error: `Lỗi kết nối: ${error instanceof Error ? error.message : "Không thể kết nối đến dịch vụ AI"}`,
