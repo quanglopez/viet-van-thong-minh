@@ -1,85 +1,87 @@
 
-import React from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { UserPlus, Users } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Mail, UserPlus, X } from "lucide-react";
 
 interface TeamMember {
   id: string;
   name: string;
   email: string;
-  avatar?: string;
-  role: 'editor' | 'viewer';
+  role: string;
 }
 
 interface TeamCollaborationProps {
   members: TeamMember[];
   onInviteMember: (email: string) => void;
-  onUpdateRole: (memberId: string, role: 'editor' | 'viewer') => void;
+  onUpdateRole: (memberId: string, role: string) => void;
 }
 
 const TeamCollaboration: React.FC<TeamCollaborationProps> = ({
   members,
   onInviteMember,
-  onUpdateRole,
+  onUpdateRole
 }) => {
-  const [inviteEmail, setInviteEmail] = React.useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+
+  const handleInvite = () => {
+    if (inviteEmail.trim()) {
+      onInviteMember(inviteEmail);
+      setInviteEmail('');
+    }
+  };
 
   return (
-    <Card className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <Users className="h-6 w-6" />
-          <h3 className="text-lg font-semibold">Thành viên nhóm</h3>
-        </div>
-        <div className="flex items-center gap-2">
+    <div className="space-y-6">
+      <Card className="p-6">
+        <h3 className="text-lg font-medium mb-4">Mời thành viên mới</h3>
+        <div className="flex gap-4">
           <Input
             type="email"
-            placeholder="Email thành viên"
+            placeholder="Email"
             value={inviteEmail}
             onChange={(e) => setInviteEmail(e.target.value)}
-            className="w-64"
+            className="flex-1"
           />
-          <Button
-            onClick={() => {
-              onInviteMember(inviteEmail);
-              setInviteEmail('');
-            }}
-            className="flex items-center gap-2"
-          >
-            <UserPlus className="h-4 w-4" />
+          <Button onClick={handleInvite}>
+            <UserPlus className="mr-2 h-4 w-4" />
             Mời
           </Button>
         </div>
-      </div>
+      </Card>
 
-      <div className="space-y-4">
-        {members.map((member) => (
-          <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Avatar>
-                <AvatarImage src={member.avatar} />
-                <AvatarFallback>{member.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-              </Avatar>
+      <Card className="p-6">
+        <h3 className="text-lg font-medium mb-4">Thành viên ({members.length})</h3>
+        <div className="space-y-4">
+          {members.map((member) => (
+            <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div>
                 <p className="font-medium">{member.name}</p>
                 <p className="text-sm text-gray-500">{member.email}</p>
               </div>
+              <div className="flex items-center gap-2">
+                <Select
+                  value={member.role}
+                  onValueChange={(value) => onUpdateRole(member.id, value)}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="owner">Chủ sở hữu</SelectItem>
+                    <SelectItem value="admin">Quản trị viên</SelectItem>
+                    <SelectItem value="editor">Biên tập viên</SelectItem>
+                    <SelectItem value="viewer">Người xem</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <select
-              value={member.role}
-              onChange={(e) => onUpdateRole(member.id, e.target.value as 'editor' | 'viewer')}
-              className="p-2 rounded border"
-            >
-              <option value="editor">Biên tập viên</option>
-              <option value="viewer">Người xem</option>
-            </select>
-          </div>
-        ))}
-      </div>
-    </Card>
+          ))}
+        </div>
+      </Card>
+    </div>
   );
 };
 

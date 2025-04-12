@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Palette, History } from "lucide-react";
+import { FileText, Palette, History, Image as ImageIcon, FileUp, Users, BarChart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateWithGemini } from "@/utils/geminiAI";
 import { v4 as uuidv4 } from 'uuid';

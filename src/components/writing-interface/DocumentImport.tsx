@@ -1,59 +1,51 @@
 
-import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { FileUp, Loader2 } from "lucide-react";
+import React, { useCallback } from 'react';
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Upload } from "lucide-react";
+import { useDropzone } from 'react-dropzone';
 
 interface DocumentImportProps {
   onContentImported: (content: string) => void;
 }
 
 const DocumentImport: React.FC<DocumentImportProps> = ({ onContentImported }) => {
-  const [isUploading, setIsUploading] = useState(false);
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    acceptedFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const content = reader.result as string;
+        onContentImported(content);
+      };
+      reader.readAsText(file);
+    });
+  }, [onContentImported]);
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    try {
-      const text = await file.text();
-      onContentImported(text);
-    } catch (error) {
-      console.error('Error reading file:', error);
-    } finally {
-      setIsUploading(false);
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'text/plain': ['.txt'],
+      'text/markdown': ['.md'],
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
     }
-  };
+  });
 
   return (
-    <Card className="p-4">
-      <h3 className="text-lg font-medium mb-4">Nhập tài liệu</h3>
-      <div className="space-y-4">
-        <div className="flex justify-center items-center border-2 border-dashed rounded-lg p-6">
-          <label className="cursor-pointer">
-            <input
-              type="file"
-              className="hidden"
-              accept=".txt,.doc,.docx,.pdf"
-              onChange={handleFileChange}
-              disabled={isUploading}
-            />
-            <Button variant="outline" disabled={isUploading}>
-              {isUploading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Đang tải lên...
-                </>
-              ) : (
-                <>
-                  <FileUp className="mr-2 h-4 w-4" />
-                  Tải tài liệu lên
-                </>
-              )}
-            </Button>
-          </label>
-        </div>
+    <Card className="p-6">
+      <div
+        {...getRootProps()}
+        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+          ${isDragActive ? 'border-primary bg-primary/5' : 'border-gray-300 hover:border-primary'}`}
+      >
+        <input {...getInputProps()} />
+        <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+        <p className="text-lg font-medium mb-2">
+          {isDragActive ? 'Thả tệp vào đây...' : 'Kéo và thả tệp hoặc click để chọn'}
+        </p>
+        <p className="text-sm text-gray-500">
+          Hỗ trợ các định dạng: TXT, MD, DOC, DOCX
+        </p>
       </div>
     </Card>
   );

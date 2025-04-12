@@ -1,60 +1,33 @@
 
 import React, { useState } from 'react';
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Image, Loader2 } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
-import { supabase } from "@/integrations/supabase/client";
 
 interface ImageGenerationProps {
-  onImageGenerated: (imageUrl: string) => void;
+  onImageGenerated?: (url: string) => void;
 }
 
 const ImageGeneration: React.FC<ImageGenerationProps> = ({ onImageGenerated }) => {
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [size, setSize] = useState<string>("1024x1024");
-  const [style, setStyle] = useState<string>("vivid");
-  const [quality, setQuality] = useState<number>(1);
+  const [style, setStyle] = useState('realistic');
+  const [size, setSize] = useState('1024x1024');
+  const [quality, setQuality] = useState([0.7]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     
     setIsGenerating(true);
     try {
-      const { data: secretData } = await supabase
-        .functions.invoke("get-secret", {
-          body: { name: "OPENAI_API_KEY" },
-        });
-
-      if (!secretData?.value) {
-        throw new Error("API key not found");
-      }
-
-      const response = await fetch('https://api.openai.com/v1/images/generations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${secretData.value}`
-        },
-        body: JSON.stringify({
-          prompt,
-          n: 1,
-          size,
-          style,
-          quality,
-          model: "dall-e-3"
-        })
-      });
-
-      const data = await response.json();
-      if (data.data?.[0]?.url) {
-        setPreviewUrl(data.data[0].url);
-        onImageGenerated(data.data[0].url);
-      }
+      // TODO: Integrate with actual AI image generation API
+      const mockUrl = 'https://placekitten.com/400/300';
+      setPreviewUrl(mockUrl);
+      onImageGenerated?.(mockUrl);
     } catch (error) {
       console.error('Error generating image:', error);
     } finally {
@@ -63,78 +36,93 @@ const ImageGeneration: React.FC<ImageGenerationProps> = ({ onImageGenerated }) =
   };
 
   return (
-    <Card className="p-4 space-y-4">
-      <h3 className="text-lg font-medium">Tạo hình ảnh AI</h3>
-      
-      <div className="space-y-4">
-        <Input
-          placeholder="Mô tả hình ảnh bạn muốn tạo..."
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-        />
-
-        <div className="grid grid-cols-2 gap-4">
-          <Select value={size} onValueChange={setSize}>
-            <SelectTrigger>
-              <SelectValue placeholder="Kích thước" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1024x1024">1024x1024</SelectItem>
-              <SelectItem value="1792x1024">1792x1024</SelectItem>
-              <SelectItem value="1024x1792">1024x1792</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={style} onValueChange={setStyle}>
-            <SelectTrigger>
-              <SelectValue placeholder="Phong cách" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="vivid">Sống động</SelectItem>
-              <SelectItem value="natural">Tự nhiên</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm">Chất lượng</label>
-          <Slider
-            value={[quality]}
-            onValueChange={([value]) => setQuality(value)}
-            max={2}
-            step={1}
-          />
-        </div>
-
-        <Button 
-          onClick={handleGenerate}
-          disabled={!prompt.trim() || isGenerating}
-          className="w-full"
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Đang tạo...
-            </>
-          ) : (
-            <>
-              <Image className="mr-2 h-4 w-4" />
-              Tạo hình ảnh
-            </>
-          )}
-        </Button>
-        
-        {previewUrl && (
-          <div className="mt-4">
-            <img 
-              src={previewUrl} 
-              alt="Generated preview" 
-              className="rounded-lg w-full"
+    <div className="space-y-6">
+      <Card className="p-6">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Mô tả hình ảnh</label>
+            <Input
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Mô tả chi tiết hình ảnh bạn muốn tạo..."
+              className="w-full"
             />
           </div>
-        )}
-      </div>
-    </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Phong cách</label>
+              <Select value={style} onValueChange={setStyle}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="realistic">Chân thực</SelectItem>
+                  <SelectItem value="artistic">Nghệ thuật</SelectItem>
+                  <SelectItem value="cartoon">Hoạt hình</SelectItem>
+                  <SelectItem value="sketch">Phác họa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Kích thước</label>
+              <Select value={size} onValueChange={setSize}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1024x1024">1024x1024</SelectItem>
+                  <SelectItem value="512x512">512x512</SelectItem>
+                  <SelectItem value="256x256">256x256</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Chất lượng</label>
+            <Slider
+              value={quality}
+              onValueChange={setQuality}
+              max={1}
+              step={0.1}
+              className="w-full"
+            />
+          </div>
+
+          <Button
+            onClick={handleGenerate}
+            disabled={isGenerating || !prompt.trim()}
+            className="w-full"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Đang tạo...
+              </>
+            ) : (
+              <>
+                <Image className="mr-2 h-4 w-4" />
+                Tạo hình ảnh
+              </>
+            )}
+          </Button>
+        </div>
+      </Card>
+
+      {previewUrl && (
+        <Card className="p-6">
+          <div className="aspect-square relative rounded-lg overflow-hidden">
+            <img
+              src={previewUrl}
+              alt="Generated"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </Card>
+      )}
+    </div>
   );
 };
 
