@@ -97,7 +97,7 @@ export async function generateWithGemini(prompt: string, options: {
     };
 
     const requestBody = {
-      model: "google/gemini-1.5-pro", // Using Gemini 1.5 Pro via OpenRouter
+      model: "anthropic/claude-3-opus", // Using Claude 3 Opus via OpenRouter for better Vietnamese support
       messages: [
         {
           role: "system",
