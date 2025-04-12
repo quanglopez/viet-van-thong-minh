@@ -323,7 +323,7 @@ const WritingInterface = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="short">Ngắn (< 300 từ)</SelectItem>
+                        <SelectItem value="short">Ngắn (&lt; 300 từ)</SelectItem>
                         <SelectItem value="medium">Trung bình (500-800 từ)</SelectItem>
                         <SelectItem value="long">Dài (1000-1500 từ)</SelectItem>
                       </SelectContent>
