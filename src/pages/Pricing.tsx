@@ -1,164 +1,109 @@
-
 import React from 'react';
-import { CheckCircle2, CircleDollarSign, BadgePlus, Users, Rocket } from 'lucide-react';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { BadgeCheck } from 'lucide-react';
-
-const PricingCard = ({ 
-  title, 
-  price, 
-  description, 
-  features, 
-  buttonText, 
-  popular = false 
-}: { 
-  title: string; 
-  price: string; 
-  description: string; 
-  features: string[]; 
-  buttonText: string;
-  popular?: boolean;
-}) => {
-  return (
-    <Card className={`shadow-lg ${popular ? 'border-vn-red border-2 relative' : ''}`}>
-      {popular && (
-        <div className="absolute top-0 right-0 bg-vn-red text-white px-4 py-1 text-sm font-medium rounded-bl-lg rounded-tr-lg">
-          Phổ biến nhất
-        </div>
-      )}
-      <CardHeader>
-        <CardTitle className="text-2xl">{title}</CardTitle>
-        <div className="mt-2">
-          <span className="text-3xl font-bold">{price}</span>
-          {price !== "Miễn phí" && <span className="text-muted-foreground">/tháng</span>}
-        </div>
-        <CardDescription className="text-gray-600">{description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ul className="space-y-2">
-          {features.map((feature, i) => (
-            <li key={i} className="flex items-start">
-              <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
-              <span>{feature}</span>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-      <CardFooter>
-        <Button className={`w-full py-6 ${popular ? 'bg-vn-red hover:bg-vn-red/90' : ''}`}>
-          {buttonText}
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-};
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import SubscriptionPlans from '@/components/SubscriptionPlans';
 
 const PricingPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex-grow">
-        <section className="py-16 bg-gray-50">
+      
+      <main className="flex-grow">
+        <section className="bg-gradient-to-b from-primary/10 to-background py-20">
+          <div className="container mx-auto text-center px-4">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Gói dịch vụ phù hợp với nhu cầu của bạn</h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Chọn gói dịch vụ phù hợp với nhu cầu của bạn và bắt đầu sáng tạo nội dung tiếng Việt chất lượng cao.
+            </p>
+          </div>
+        </section>
+        
+        {/* Subscription Plans */}
+        <SubscriptionPlans />
+        
+        {/* FAQs */}
+        <section className="py-20 bg-muted/30">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
-              <h1 className="text-4xl md:text-5xl font-bold mb-6">Gói dịch vụ phù hợp với mọi nhu cầu</h1>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Chọn gói dịch vụ phù hợp với nhu cầu của bạn và bắt đầu tạo nội dung chất lượng ngay hôm nay.
-              </p>
-            </div>
+            <h2 className="text-3xl font-bold text-center mb-12">Câu hỏi thường gặp</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-              <PricingCard 
-                title="Miễn phí" 
-                price="Miễn phí" 
-                description="Dành cho người mới bắt đầu muốn trải nghiệm." 
-                features={[
-                  "10 bài viết mỗi tháng",
-                  "Mẫu cơ bản",
-                  "Giọng điệu tiêu chuẩn",
-                  "Giới hạn 500 từ/bài",
-                ]}
-                buttonText="Bắt đầu miễn phí"
-              />
-              
-              <PricingCard 
-                title="Cá nhân" 
-                price="149K" 
-                description="Dành cho cá nhân sáng tạo nội dung." 
-                features={[
-                  "50 bài viết mỗi tháng",
-                  "Tất cả mẫu cơ bản",
-                  "Tùy chọn giọng điệu",
-                  "Giọng địa phương Bắc-Trung-Nam",
-                  "Tối ưu SEO cơ bản",
-                  "Không giới hạn độ dài",
-                ]}
-                buttonText="Đăng ký ngay"
-                popular={true}
-              />
-              
-              <PricingCard 
-                title="Doanh nghiệp nhỏ" 
-                price="299K" 
-                description="Dành cho doanh nghiệp vừa và nhỏ." 
-                features={[
-                  "150 bài viết mỗi tháng",
-                  "Tất cả mẫu chuyên nghiệp",
-                  "Hỗ trợ tất cả giọng điệu",
-                  "Phân tích văn phong từ nội dung",
-                  "Tối ưu SEO nâng cao",
-                  "Chuyển đổi định dạng",
-                ]}
-                buttonText="Đăng ký ngay"
-              />
-              
-              <PricingCard 
-                title="Doanh nghiệp" 
-                price="499K" 
-                description="Giải pháp cho doanh nghiệp lớn." 
-                features={[
-                  "Không giới hạn lượt dùng",
-                  "Nhiều người dùng (5 tài khoản)",
-                  "API tích hợp",
-                  "AI học phong cách thương hiệu",
-                  "Đào tạo và hỗ trợ ưu tiên",
-                  "Báo cáo và phân tích",
-                ]}
-                buttonText="Liên hệ tư vấn"
-              />
-            </div>
-            
-            <div className="mt-20 max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8">
-              <h2 className="text-2xl font-bold mb-6 text-center">Câu hỏi thường gặp</h2>
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Tôi có thể nâng cấp hoặc hạ cấp gói dịch vụ của mình không?</h3>
-                  <p className="text-gray-600">Có, bạn có thể thay đổi gói dịch vụ bất kỳ lúc nào. Việc nâng cấp sẽ có hiệu lực ngay lập tức, và việc hạ cấp sẽ có hiệu lực vào kỳ thanh toán tiếp theo.</p>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Tôi thanh toán bằng phương thức nào?</h3>
-                  <p className="text-gray-600">Chúng tôi chấp nhận thanh toán qua thẻ tín dụng, chuyển khoản ngân hàng, và các ví điện tử phổ biến như MoMo, ZaloPay, và VNPay.</p>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Tôi có được hoàn tiền nếu không hài lòng không?</h3>
-                  <p className="text-gray-600">Có, chúng tôi cung cấp chính sách hoàn tiền trong vòng 7 ngày đầu tiên nếu bạn không hài lòng với dịch vụ.</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="mt-16 text-center">
-              <h2 className="text-2xl font-bold mb-4">Vẫn còn thắc mắc?</h2>
-              <p className="text-gray-600 mb-6">Liên hệ với đội ngũ hỗ trợ của chúng tôi để được giải đáp.</p>
-              <Button variant="outline" size="lg" className="px-8">
-                Liên hệ hỗ trợ
-              </Button>
+            <div className="max-w-3xl mx-auto">
+              <Accordion type="single" collapsible className="space-y-4">
+                <AccordionItem value="item-1" className="bg-background rounded-lg border">
+                  <AccordionTrigger className="px-6">Token là gì và cách chúng được tính?</AccordionTrigger>
+                  <AccordionContent className="px-6 pb-4">
+                    Token là đơn vị đo lường sử dụng trong mô hình ngôn ngữ AI. Mỗi token tương đương với khoảng 4 ký tự tiếng Việt. 
+                    Khi bạn tạo nội dung, chúng tôi tính cả số token trong yêu cầu của bạn và trong văn bản được tạo ra. 
+                    Ví dụ, một bài viết 1000 từ thường sử dụng khoảng 2000-3000 token.
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="item-2" className="bg-background rounded-lg border">
+                  <AccordionTrigger className="px-6">Tôi có thể nâng cấp hoặc hạ cấp gói dịch vụ bất cứ lúc nào không?</AccordionTrigger>
+                  <AccordionContent className="px-6 pb-4">
+                    Có, bạn có thể thay đổi gói dịch vụ bất cứ lúc nào từ trang hồ sơ của mình. 
+                    Nếu bạn nâng cấp, chúng tôi sẽ tính phí chênh lệch theo tỷ lệ cho thời gian còn lại của chu kỳ thanh toán. 
+                    Nếu bạn hạ cấp, thay đổi sẽ có hiệu lực vào đầu chu kỳ thanh toán tiếp theo.
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="item-3" className="bg-background rounded-lg border">
+                  <AccordionTrigger className="px-6">Điều gì xảy ra nếu tôi sử dụng hết token trong tháng?</AccordionTrigger>
+                  <AccordionContent className="px-6 pb-4">
+                    Khi bạn sử dụng hết token hàng tháng, bạn sẽ không thể tạo thêm nội dung mới cho đến khi giới hạn của bạn được làm mới vào đầu tháng tiếp theo. 
+                    Bạn có thể chọn nâng cấp gói dịch vụ để có thêm token hoặc mua thêm token nếu bạn cần sử dụng ngay.
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="item-4" className="bg-background rounded-lg border">
+                  <AccordionTrigger className="px-6">Có chính sách hoàn tiền không?</AccordionTrigger>
+                  <AccordionContent className="px-6 pb-4">
+                    Chúng tôi cung cấp chính sách hoàn tiền trong vòng 7 ngày kể từ ngày đăng ký gói trả phí. 
+                    Nếu vì bất kỳ lý do gì bạn không hài lòng với dịch vụ, bạn có thể yêu cầu hoàn tiền đầy đủ trong thời gian này. 
+                    Sau 7 ngày, chúng tôi không cung cấp hoàn tiền cho thời gian còn lại của chu kỳ thanh toán.
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="item-5" className="bg-background rounded-lg border">
+                  <AccordionTrigger className="px-6">Tôi có thể sử dụng nội dung được tạo cho mục đích thương mại không?</AccordionTrigger>
+                  <AccordionContent className="px-6 pb-4">
+                    Có, bạn sở hữu tất cả nội dung được tạo bằng dịch vụ của chúng tôi và có thể sử dụng cho bất kỳ mục đích nào, bao gồm cả sử dụng thương mại. 
+                    Tuy nhiên, chúng tôi khuyến nghị bạn nên xem lại và chỉnh sửa nội dung trước khi xuất bản để đảm bảo độ chính xác và phù hợp với thương hiệu của bạn.
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="item-6" className="bg-background rounded-lg border">
+                  <AccordionTrigger className="px-6">Dữ liệu của tôi có được bảo mật không?</AccordionTrigger>
+                  <AccordionContent className="px-6 pb-4">
+                    Chúng tôi coi trọng quyền riêng tư và bảo mật dữ liệu của bạn. Nội dung bạn tạo ra chỉ có thể được truy cập bởi tài khoản của bạn. 
+                    Chúng tôi không sử dụng nội dung của bạn để huấn luyện các mô hình AI của mình. 
+                    Để biết thêm chi tiết, vui lòng xem Chính sách Quyền riêng tư của chúng tôi.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </div>
           </div>
         </section>
-      </div>
+        
+        {/* CTA Section */}
+        <section className="py-20 bg-primary/5">
+          <div className="container mx-auto text-center px-4">
+            <h2 className="text-3xl font-bold mb-4">Sẵn sàng nâng cao chất lượng nội dung của bạn?</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+              Đăng ký ngay hôm nay và trải nghiệm sức mạnh của AI trong việc tạo nội dung tiếng Việt chất lượng cao.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <a href="/#demo" className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                Dùng thử miễn phí
+              </a>
+              <a href="/auth" className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                Đăng ký tài khoản
+              </a>
+            </div>
+          </div>
+        </section>
+      </main>
+      
       <Footer />
     </div>
   );

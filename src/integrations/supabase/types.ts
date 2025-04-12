@@ -17,6 +17,12 @@ export type Database = {
           id: string
           updated_at: string
           username: string
+          subscription_tier: 'free' | 'basic' | 'premium' | 'enterprise'
+          subscription_start: string | null
+          subscription_end: string | null
+          monthly_token_limit: number
+          tokens_used: number
+          last_token_reset: string
         }
         Insert: {
           avatar_url?: string | null
@@ -25,6 +31,12 @@ export type Database = {
           id: string
           updated_at?: string
           username: string
+          subscription_tier?: 'free' | 'basic' | 'premium' | 'enterprise'
+          subscription_start?: string | null
+          subscription_end?: string | null
+          monthly_token_limit?: number
+          tokens_used?: number
+          last_token_reset?: string
         }
         Update: {
           avatar_url?: string | null
@@ -33,18 +45,216 @@ export type Database = {
           id?: string
           updated_at?: string
           username?: string
+          subscription_tier?: 'free' | 'basic' | 'premium' | 'enterprise'
+          subscription_start?: string | null
+          subscription_end?: string | null
+          monthly_token_limit?: number
+          tokens_used?: number
+          last_token_reset?: string
         }
         Relationships: []
       }
+      user_content: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          content: string
+          prompt: string
+          tokens_used: number | null
+          status: 'draft' | 'published' | 'archived'
+          settings: Json
+          created_at: string
+          updated_at: string
+          category: string | null
+          template: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          content: string
+          prompt: string
+          tokens_used?: number | null
+          status?: 'draft' | 'published' | 'archived'
+          settings?: Json
+          created_at?: string
+          updated_at?: string
+          category?: string | null
+          template?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          content?: string
+          prompt?: string
+          tokens_used?: number | null
+          status?: 'draft' | 'published' | 'archived'
+          settings?: Json
+          created_at?: string
+          updated_at?: string
+          category?: string | null
+          template?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_content_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      tone_templates: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          settings: Json
+          is_system: boolean
+          user_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          settings: Json
+          is_system?: boolean
+          user_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          settings?: Json
+          is_system?: boolean
+          user_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tone_templates_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      content_templates: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          category: string
+          prompt_template: string
+          settings: Json
+          is_system: boolean
+          user_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          category: string
+          prompt_template: string
+          settings?: Json
+          is_system?: boolean
+          user_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          category?: string
+          prompt_template?: string
+          settings?: Json
+          is_system?: boolean
+          user_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_templates_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      usage_statistics: {
+        Row: {
+          id: string
+          user_id: string
+          date: string
+          tokens_used: number
+          content_count: number
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          date?: string
+          tokens_used?: number
+          content_count?: number
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          date?: string
+          tokens_used?: number
+          content_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usage_statistics_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      content_analytics: {
+        Row: {
+          user_id: string
+          email: string
+          full_name: string
+          subscription_tier: 'free' | 'basic' | 'premium' | 'enterprise'
+          monthly_token_limit: number
+          tokens_used: number
+          total_content_count: number
+          total_tokens_used: number
+          avg_tokens_per_content: number
+          first_content_date: string | null
+          last_content_date: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Functions: {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      subscription_tier: 'free' | 'basic' | 'premium' | 'enterprise'
+      content_status: 'draft' | 'published' | 'archived'
     }
     CompositeTypes: {
       [_ in never]: never
