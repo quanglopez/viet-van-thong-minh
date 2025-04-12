@@ -1,73 +1,24 @@
+
 import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { 
-  FileText, 
-  Languages, 
-  RefreshCw, 
-  Settings, 
-  Sparkles,
-  Copy,
-  Download,
-  Share2,
-  Sliders,
-  BookOpen,
-  CheckSquare,
-  Save,
-  History,
-  Palette
-} from "lucide-react";
+import { FileText, Palette, History } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateWithGemini } from "@/utils/geminiAI";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import ToneStyleTemplates, { ToneTemplate } from "./ToneStyleTemplates";
-import ContentHistory, { SavedContent } from "./ContentHistory";
 import { v4 as uuidv4 } from 'uuid';
 
-const templateCategories = [
-  {
-    category: "Bán lẻ & E-commerce",
-    templates: [
-      "Mô tả sản phẩm tối ưu SEO",
-      "Email marketing theo mùa",
-      "Bài viết blog cho thương hiệu",
-      "Nội dung quảng cáo Facebook"
-    ]
-  },
-  {
-    category: "Bất động sản",
-    templates: [
-      "Mô tả bất động sản chuyên nghiệp",
-      "Email tiếp cận khách hàng tiềm năng",
-      "Bài viết phân tích thị trường",
-      "Nội dung landing page dự án"
-    ]
-  },
-  {
-    category: "Nhà hàng & F&B",
-    templates: [
-      "Mô tả món ăn hấp dẫn",
-      "Quảng cáo khuyến mãi đặc biệt",
-      "Nội dung cho menu điện tử",
-      "Bài viết blog về ẩm thực"
-    ]
-  }
-];
+// Import refactored components
+import PromptForm from "./writing-interface/PromptForm";
+import StyleSettings from "./writing-interface/StyleSettings";
+import HistoryView from "./writing-interface/HistoryView";
+import AdvancedSettings from "./writing-interface/AdvancedSettings";
+import GenerateButton from "./writing-interface/GenerateButton";
+import GeneratedContent from "./writing-interface/GeneratedContent";
+import { templateCategories } from "./writing-interface/data";
+import { ToneTemplate } from "./ToneStyleTemplates";
+import { SavedContent } from "./ContentHistory";
+import { WritingInterfaceProps } from "./writing-interface/types";
 
-const WritingInterface = () => {
+const WritingInterface: React.FC<WritingInterfaceProps> = () => {
   const { toast } = useToast();
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -87,6 +38,7 @@ const WritingInterface = () => {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("template");
 
+  // Load saved content from localStorage
   useEffect(() => {
     const savedContentData = localStorage.getItem('savedContents');
     if (savedContentData) {
@@ -102,6 +54,7 @@ const WritingInterface = () => {
     }
   }, []);
 
+  // Save content to localStorage when it changes
   useEffect(() => {
     if (savedContents.length > 0) {
       localStorage.setItem('savedContents', JSON.stringify(savedContents));
@@ -313,334 +266,69 @@ const WritingInterface = () => {
             </TabsList>
 
             <TabsContent value="template">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium mb-2">Chọn danh mục</label>
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn danh mục ngành nghề" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {templateCategories.map((cat) => (
-                          <SelectItem key={cat.category} value={cat.category}>
-                            {cat.category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {selectedCategory && (
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium mb-2">Chọn mẫu</label>
-                      <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn mẫu nội dung" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {templateCategories
-                            .find((cat) => cat.category === selectedCategory)
-                            ?.templates.map((template) => (
-                              <SelectItem key={template} value={template}>
-                                {template}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium mb-2">Yêu cầu của bạn</label>
-                    <Textarea
-                      placeholder={selectedTemplate 
-                        ? "Nhập thông tin chi tiết về nhu cầu của bạn..." 
-                        : "Nhập yêu cầu nội dung của bạn..."}
-                      className="min-h-[120px] mb-2"
-                      value={prompt}
-                      onChange={(e) => setPrompt(e.target.value)}
-                    />
-                    {selectedTemplate && (
-                      <p className="text-sm text-gray-500">
-                        Ví dụ: Tên sản phẩm, đặc điểm, đối tượng khách hàng, ...
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+              <PromptForm
+                templateCategories={templateCategories}
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+                selectedTemplate={selectedTemplate}
+                setSelectedTemplate={setSelectedTemplate}
+                prompt={prompt}
+                setPrompt={setPrompt}
+              />
             </TabsContent>
 
             <TabsContent value="styles">
-              <Card>
-                <CardContent className="pt-6">
-                  <h3 className="text-xl font-medium mb-4">Chọn giọng điệu và phong cách</h3>
-                  <p className="text-gray-600 mb-6">
-                    Lựa chọn các mẫu giọng điệu và phong cách để tối ưu hóa nội dung của bạn
-                  </p>
-                  <ToneStyleTemplates 
-                    onSelectTemplate={handleSelectToneTemplate} 
-                    selectedTemplateId={selectedToneTemplateId}
-                  />
-                </CardContent>
-              </Card>
+              <StyleSettings
+                onSelectToneTemplate={handleSelectToneTemplate}
+                selectedToneTemplateId={selectedToneTemplateId}
+              />
             </TabsContent>
 
             <TabsContent value="history">
-              <Card>
-                <CardContent className="pt-6">
-                  <h3 className="text-xl font-medium mb-4">Lịch sử nội dung đã tạo</h3>
-                  <p className="text-gray-600 mb-6">
-                    Truy cập và quản lý những nội dung bạn đã lưu trước đây
-                  </p>
-                  <ContentHistory
-                    savedContents={savedContents}
-                    onSelect={handleSelectFromHistory}
-                    onDelete={handleDeleteContent}
-                    onEdit={handleEditContent}
-                  />
-                </CardContent>
-              </Card>
+              <HistoryView
+                savedContents={savedContents}
+                onSelect={handleSelectFromHistory}
+                onDelete={handleDeleteContent}
+                onEdit={handleEditContent}
+              />
             </TabsContent>
 
             <div className="mt-8 bg-white p-6 rounded-lg shadow-sm">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Giọng địa phương</label>
-                    <Select value={dialect} onValueChange={setDialect}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="neutral">Trung lập</SelectItem>
-                        <SelectItem value="northern">Miền Bắc</SelectItem>
-                        <SelectItem value="central">Miền Trung</SelectItem>
-                        <SelectItem value="southern">Miền Nam</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+              <AdvancedSettings
+                dialect={dialect}
+                setDialect={setDialect}
+                tone={tone}
+                setTone={setTone}
+                voiceStyle={voiceStyle}
+                setVoiceStyle={setVoiceStyle}
+                contentType={contentType}
+                setContentType={setContentType}
+                targetLength={targetLength}
+                setTargetLength={setTargetLength}
+                seoOptimize={seoOptimize}
+                setSeoOptimize={setSeoOptimize}
+                temperature={temperature}
+                setTemperature={setTemperature}
+              />
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Giọng điệu</label>
-                    <Select value={tone} onValueChange={setTone}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="professional">Chuyên nghiệp</SelectItem>
-                        <SelectItem value="friendly">Thân thiện</SelectItem>
-                        <SelectItem value="persuasive">Thuyết phục</SelectItem>
-                        <SelectItem value="formal">Trang trọng</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Văn phong</label>
-                    <Select value={voiceStyle} onValueChange={setVoiceStyle}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="written">Văn viết</SelectItem>
-                        <SelectItem value="spoken">Văn nói</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Loại nội dung</label>
-                    <Select value={contentType} onValueChange={setContentType}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="general">Chung</SelectItem>
-                        <SelectItem value="blog">Blog</SelectItem>
-                        <SelectItem value="social">Mạng xã hội</SelectItem>
-                        <SelectItem value="email">Email</SelectItem>
-                        <SelectItem value="product">Mô tả sản phẩm</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Độ dài</label>
-                    <Select value={targetLength} onValueChange={setTargetLength}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="short">Ngắn (&lt; 300 từ)</SelectItem>
-                        <SelectItem value="medium">Trung bình (500-800 từ)</SelectItem>
-                        <SelectItem value="long">Dài (1000-1500 từ)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Switch 
-                      id="seo" 
-                      checked={seoOptimize}
-                      onCheckedChange={setSeoOptimize}
-                    />
-                    <Label htmlFor="seo">Tối ưu SEO</Label>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mb-8">
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium">Độ sáng tạo: {temperature[0].toFixed(1)}</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <BookOpen className="h-4 w-4 mr-1" />
-                        Chi tiết
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80 p-4">
-                      <h3 className="font-medium mb-2">Độ sáng tạo là gì?</h3>
-                      <p className="text-sm text-gray-600">
-                        Độ sáng tạo thấp (0.1-0.3) sẽ tạo ra nội dung nhất quán, chính xác. 
-                        Độ sáng tạo cao (0.7-1.0) sẽ tạo ra nội dung đa dạng, sáng tạo hơn.
-                      </p>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <Slider
-                  value={temperature}
-                  onValueChange={setTemperature}
-                  min={0.1}
-                  max={1.0}
-                  step={0.1}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>Chính xác</span>
-                  <span>Sáng tạo</span>
-                </div>
-              </div>
-
-              <div className="flex justify-center">
-                <Button 
-                  onClick={handleGenerate} 
-                  disabled={isGenerating || !prompt.trim()} 
-                  className="bg-vn-red hover:bg-vn-red/90 py-6 px-8 text-lg"
-                >
-                  {isGenerating ? (
-                    <>
-                      <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
-                      Đang tạo nội dung...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-5 w-5" />
-                      Tạo nội dung
-                    </>
-                  )}
-                </Button>
-              </div>
+              <GenerateButton
+                onClick={handleGenerate}
+                isGenerating={isGenerating}
+                disabled={isGenerating || !prompt.trim()}
+              />
 
               {generatedContent && (
-                <div className="mt-8 border rounded-lg p-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium">Nội dung đã tạo</h3>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" onClick={handleCopy}>
-                        <Copy size={16} className="mr-1" />
-                        Sao chép
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={handleDownload}>
-                        <Download size={16} className="mr-1" />
-                        Tải xuống
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => setShowSaveDialog(true)}
-                      >
-                        <Save size={16} className="mr-1" />
-                        Lưu nội dung
-                      </Button>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <Settings size={16} className="mr-1" />
-                            Chỉnh sửa
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80 p-4">
-                          <div className="space-y-4">
-                            <h3 className="font-medium">Tùy chọn chỉnh sửa</h3>
-                            <div>
-                              <Label className="mb-1 block">Làm ngắn hơn</Label>
-                              <Button size="sm" variant="secondary" className="w-full">Rút gọn nội dung</Button>
-                            </div>
-                            <div>
-                              <Label className="mb-1 block">Làm dài hơn</Label>
-                              <Button size="sm" variant="secondary" className="w-full">Mở rộng nội dung</Button>
-                            </div>
-                            <div>
-                              <Label className="mb-1 block">Giọng khác</Label>
-                              <Select defaultValue="professional">
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="professional">Chuyên nghiệp hơn</SelectItem>
-                                  <SelectItem value="friendly">Thân thiện hơn</SelectItem>
-                                  <SelectItem value="persuasive">Thuyết phục hơn</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                      <Button variant="outline" size="sm">
-                        <Languages size={16} className="mr-1" />
-                        Chuyển đổi
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="p-4 bg-gray-50 rounded-md text-left whitespace-pre-wrap">
-                    {generatedContent}
-                  </div>
-
-                  {showSaveDialog && (
-                    <div className="mt-4 border-t pt-4">
-                      <h4 className="font-medium mb-2">Lưu nội dung này</h4>
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="content-title" className="mb-1 block">Tiêu đề</Label>
-                          <Input
-                            id="content-title"
-                            placeholder="Nhập tiêu đề để lưu..."
-                            value={contentTitle}
-                            onChange={(e) => setContentTitle(e.target.value)}
-                          />
-                        </div>
-                        <div className="flex space-x-2">
-                          <Button onClick={handleSaveContent} className="flex-1">
-                            <Save className="mr-2 h-4 w-4" /> Lưu nội dung
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            onClick={() => {
-                              setShowSaveDialog(false);
-                              setContentTitle("");
-                            }}
-                          >
-                            Hủy
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <GeneratedContent
+                  content={generatedContent}
+                  onCopy={handleCopy}
+                  onDownload={handleDownload}
+                  onSave={() => setShowSaveDialog(true)}
+                  showSaveDialog={showSaveDialog}
+                  contentTitle={contentTitle}
+                  setContentTitle={setContentTitle}
+                  handleSaveContent={handleSaveContent}
+                  setShowSaveDialog={setShowSaveDialog}
+                />
               )}
             </div>
           </Tabs>
