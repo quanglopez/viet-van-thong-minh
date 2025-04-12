@@ -22,6 +22,18 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
   const { toast } = useToast();
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [comparisonContents, setComparisonContents] = useState<Array<{
+    id: string;
+    content: string;
+    settings: { tone: string; dialect: string; };
+  }>>([]);
+  const [seoMetrics, setSeoMetrics] = useState({
+    readability: 0,
+    keywordDensity: 0,
+    titleOptimization: 0,
+    structureScore: 0
+  });
+  const [suggestedKeywords, setSuggestedKeywords] = useState<string[]>([]);
   const [prompt, setPrompt] = useState("");
   const [generatedContent, setGeneratedContent] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
