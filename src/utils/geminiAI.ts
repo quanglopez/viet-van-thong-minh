@@ -1,8 +1,8 @@
 
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 // Replaced Gemini API with OpenRouter API using Gemini 2.5 Pro Preview model
-const OPENROUTER_API_KEY = ""; // This should be added through Supabase secrets
 const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 export interface GeminiResponse {
@@ -22,6 +22,22 @@ export async function generateWithGemini(prompt: string, options: {
   contentType?: string;
 } = {}): Promise<GeminiResponse> {
   try {
+    // Get API key from Supabase
+    const { data: secretData, error: secretError } = await supabase
+      .functions.invoke("get-secret", {
+        body: { name: "OPENROUTER_API_KEY" },
+      });
+      
+    if (secretError || !secretData || !secretData.value) {
+      console.error("Error fetching API key:", secretError);
+      return {
+        text: "",
+        error: "Không thể truy xuất API key. Vui lòng kiểm tra cấu hình.",
+      };
+    }
+    
+    const OPENROUTER_API_KEY = secretData.value;
+    
     const { 
       temperature = 0.7, 
       maxTokens = 1024, 
