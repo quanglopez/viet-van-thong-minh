@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Palette, History } from "lucide-react";
@@ -79,7 +78,7 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
     setDialect(template.settings.dialect);
     setVoiceStyle(template.settings.voiceStyle);
     setTemperature([template.settings.temperature]);
-    
+
     toast({
       title: "Mẫu giọng điệu đã được áp dụng",
       description: `Đã áp dụng "${template.name}" cho nội dung của bạn.`,
@@ -125,7 +124,7 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
 
   const handleDeleteContent = (id: string) => {
     setSavedContents(prevContents => prevContents.filter(item => item.id !== id));
-    
+
     toast({
       title: "Đã xóa nội dung",
       description: "Nội dung đã được xóa khỏi lịch sử.",
@@ -138,7 +137,7 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
         item.id === id ? { ...item, ...updates } : item
       )
     );
-    
+
     toast({
       title: "Đã cập nhật nội dung",
       description: "Nội dung đã được cập nhật thành công.",
@@ -148,7 +147,7 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
   const handleSelectFromHistory = (content: SavedContent) => {
     setGeneratedContent(content.content);
     setPrompt(content.prompt);
-    
+
     if (content.settings) {
       setTone(content.settings.tone);
       setDialect(content.settings.dialect);
@@ -157,15 +156,15 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
       setContentType(content.settings.contentType);
       setTargetLength(content.settings.targetLength);
     }
-    
+
     if (content.category) {
       const [category, template] = content.category.split(" - ");
       setSelectedCategory(category);
       setSelectedTemplate(template);
     }
-    
+
     setActiveTab("template");
-    
+
     toast({
       title: "Đã tải nội dung",
       description: "Nội dung đã lưu đã được tải vào trình soạn thảo.",
@@ -181,16 +180,16 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
       });
       return;
     }
-    
+
     setIsGenerating(true);
-    
+
     try {
       let effectivePrompt = prompt;
-      
+
       if (selectedTemplate && selectedCategory) {
         effectivePrompt = `[${selectedCategory} - ${selectedTemplate}]\n${prompt}`;
       }
-      
+
       const result = await generateWithGemini(effectivePrompt, {
         temperature: temperature[0],
         maxTokens: 1024,
@@ -201,7 +200,7 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
         targetLength,
         contentType
       });
-      
+
       if (result.error) {
         toast({
           title: "Lỗi tạo nội dung",
@@ -246,7 +245,7 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     toast({
       title: "Đã tải xuống!",
       description: "Nội dung đã được tải xuống dưới dạng file văn bản.",
@@ -265,7 +264,7 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
 
         <div className="max-w-5xl mx-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-3 mb-8">
+            <TabsList className="grid grid-cols-4 mb-8"> {/* Added a column for the new tabs */}
               <TabsTrigger value="template" className="text-lg py-3">
                 <FileText className="mr-2" size={18} /> Tạo mới
               </TabsTrigger>
@@ -274,6 +273,12 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
               </TabsTrigger>
               <TabsTrigger value="history" className="text-lg py-3">
                 <History className="mr-2" size={18} /> Lịch sử
+              </TabsTrigger>
+              <TabsTrigger value="images" className="text-lg py-3">
+                {/* Add Icon here if needed */} Images
+              </TabsTrigger>
+              <TabsTrigger value="import" className="text-lg py-3">
+                {/* Add Icon here if needed */} Import
               </TabsTrigger>
             </TabsList>
 
@@ -305,44 +310,20 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
               />
             </TabsContent>
 
-            <div className="mt-8 bg-white p-6 rounded-lg shadow-sm">
-              <AdvancedSettings
-                dialect={dialect}
-                setDialect={setDialect}
-                tone={tone}
-                setTone={setTone}
-                voiceStyle={voiceStyle}
-                setVoiceStyle={setVoiceStyle}
-                contentType={contentType}
-                setContentType={setContentType}
-                targetLength={targetLength}
-                setTargetLength={setTargetLength}
-                seoOptimize={seoOptimize}
-                setSeoOptimize={setSeoOptimize}
-                temperature={temperature}
-                setTemperature={setTemperature}
-              />
+            <TabsContent value="images">
+              <ImageGeneration onImageGenerated={(url) => {
+                setGeneratedContent((prev) => 
+                  prev + `\n\n![Generated Image](${url})\n\n`
+                );
+              }} />
+            </TabsContent>
 
-              <GenerateButton
-                onClick={handleGenerate}
-                isGenerating={isGenerating}
-                disabled={isGenerating || !prompt.trim()}
-              />
-
-              {generatedContent && (
-                <GeneratedContent
-                  content={generatedContent}
-                  onCopy={handleCopy}
-                  onDownload={handleDownload}
-                  onSave={() => setShowSaveDialog(true)}
-                  showSaveDialog={showSaveDialog}
-                  contentTitle={contentTitle}
-                  setContentTitle={setContentTitle}
-                  handleSaveContent={handleSaveContent}
-                  setShowSaveDialog={setShowSaveDialog}
-                />
-              )}
-            </div>
+            <TabsContent value="import">
+              <DocumentImport onContentImported={(content) => {
+                setPrompt(content);
+                setActiveTab("template");
+              }} />
+            </TabsContent>
           </Tabs>
         </div>
       </div>
