@@ -24,12 +24,38 @@ const ImageGeneration: React.FC<ImageGenerationProps> = ({ onImageGenerated }) =
     
     setIsGenerating(true);
     try {
-      // TODO: Integrate with actual AI image generation API
-      const mockUrl = 'https://placekitten.com/400/300';
-      setPreviewUrl(mockUrl);
-      onImageGenerated?.(mockUrl);
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt,
+          style,
+          size,
+          quality: quality[0]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate image');
+      }
+
+      const data = await response.json();
+      setPreviewUrl(data.imageUrl);
+      onImageGenerated?.(data.imageUrl);
+      
+      toast({
+        title: "Thành công",
+        description: "Đã tạo hình ảnh thành công",
+      });
     } catch (error) {
       console.error('Error generating image:', error);
+      toast({
+        title: "Lỗi",
+        description: "Không thể tạo hình ảnh. Vui lòng thử lại.",
+        variant: "destructive"
+      });
     } finally {
       setIsGenerating(false);
     }

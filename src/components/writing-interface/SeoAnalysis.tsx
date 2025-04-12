@@ -19,6 +19,15 @@ const SeoAnalysis: React.FC<SeoAnalysisProps> = ({ content }) => {
   const analyzeSeo = (text: string): SeoScore[] => {
     const scores: SeoScore[] = [];
     
+    // Meta title length
+    const titleLength = text.split('\n')[0]?.length || 0;
+    scores.push({
+      score: titleLength > 30 && titleLength < 60 ? 100 : titleLength < 30 ? 60 : 40,
+      category: "Độ dài tiêu đề",
+      suggestions: titleLength < 30 ? ["Tiêu đề quá ngắn"] : 
+                  titleLength > 60 ? ["Tiêu đề quá dài"] : []
+    });
+    
     // Keyword density
     const words = text.toLowerCase().split(/\s+/);
     const wordCount = words.length;
