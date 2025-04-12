@@ -17,7 +17,7 @@ export async function generateWithGemini(prompt: string, options: {
   dialect?: string;
   voiceStyle?: string;
   seoOptimize?: boolean;
-  targetLength?: number;
+  targetLength?: string;
   contentType?: string;
 } = {}): Promise<GeminiResponse> {
   try {
