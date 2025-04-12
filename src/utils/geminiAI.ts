@@ -97,7 +97,7 @@ export async function generateWithGemini(prompt: string, options: {
     };
 
     const requestBody = {
-      model: "google/gemini-2-5-pro-preview", // Using Gemini 2.5 Pro Preview via OpenRouter
+      model: "google/gemini-1.5-pro", // Using Gemini 1.5 Pro via OpenRouter
       messages: [
         {
           role: "system",
