@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,7 +22,10 @@ import {
   Share2,
   Sliders,
   BookOpen,
-  CheckSquare 
+  CheckSquare,
+  Save,
+  History,
+  Palette
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateWithGemini } from "@/utils/geminiAI";
@@ -31,6 +33,9 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import ToneStyleTemplates, { ToneTemplate } from "./ToneStyleTemplates";
+import ContentHistory, { SavedContent } from "./ContentHistory";
+import { v4 as uuidv4 } from 'uuid';
 
 const templateCategories = [
   {
@@ -76,6 +81,131 @@ const WritingInterface = () => {
   const [contentType, setContentType] = useState("general");
   const [targetLength, setTargetLength] = useState("medium");
   const [temperature, setTemperature] = useState([0.7]);
+  const [selectedToneTemplateId, setSelectedToneTemplateId] = useState<string | null>(null);
+  const [savedContents, setSavedContents] = useState<SavedContent[]>([]);
+  const [contentTitle, setContentTitle] = useState("");
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState("template");
+
+  useEffect(() => {
+    const savedContentData = localStorage.getItem('savedContents');
+    if (savedContentData) {
+      try {
+        const parsedData = JSON.parse(savedContentData).map((item: any) => ({
+          ...item,
+          timestamp: new Date(item.timestamp)
+        }));
+        setSavedContents(parsedData);
+      } catch (error) {
+        console.error("Error loading saved content:", error);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (savedContents.length > 0) {
+      localStorage.setItem('savedContents', JSON.stringify(savedContents));
+    }
+  }, [savedContents]);
+
+  const handleSelectToneTemplate = (template: ToneTemplate) => {
+    setSelectedToneTemplateId(template.id);
+    setTone(template.settings.tone);
+    setDialect(template.settings.dialect);
+    setVoiceStyle(template.settings.voiceStyle);
+    setTemperature([template.settings.temperature]);
+    
+    toast({
+      title: "Mẫu giọng điệu đã được áp dụng",
+      description: `Đã áp dụng "${template.name}" cho nội dung của bạn.`,
+    });
+  };
+
+  const handleSaveContent = () => {
+    if (!generatedContent || !contentTitle.trim()) {
+      toast({
+        title: "Không thể lưu",
+        description: "Vui lòng tạo nội dung và nhập tiêu đề trước khi lưu.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newContent: SavedContent = {
+      id: uuidv4(),
+      title: contentTitle,
+      content: generatedContent,
+      prompt: prompt,
+      timestamp: new Date(),
+      category: selectedCategory && selectedTemplate ? `${selectedCategory} - ${selectedTemplate}` : undefined,
+      settings: {
+        tone,
+        dialect,
+        voiceStyle,
+        temperature: temperature[0],
+        contentType,
+        targetLength
+      }
+    };
+
+    setSavedContents(prevContents => [newContent, ...prevContents]);
+    setShowSaveDialog(false);
+    setContentTitle("");
+
+    toast({
+      title: "Đã lưu nội dung",
+      description: "Nội dung của bạn đã được lưu vào lịch sử.",
+    });
+  };
+
+  const handleDeleteContent = (id: string) => {
+    setSavedContents(prevContents => prevContents.filter(item => item.id !== id));
+    
+    toast({
+      title: "Đã xóa nội dung",
+      description: "Nội dung đã được xóa khỏi lịch sử.",
+    });
+  };
+
+  const handleEditContent = (id: string, updates: Partial<SavedContent>) => {
+    setSavedContents(prevContents => 
+      prevContents.map(item => 
+        item.id === id ? { ...item, ...updates } : item
+      )
+    );
+    
+    toast({
+      title: "Đã cập nhật nội dung",
+      description: "Nội dung đã được cập nhật thành công.",
+    });
+  };
+
+  const handleSelectFromHistory = (content: SavedContent) => {
+    setGeneratedContent(content.content);
+    setPrompt(content.prompt);
+    
+    if (content.settings) {
+      setTone(content.settings.tone);
+      setDialect(content.settings.dialect);
+      setVoiceStyle(content.settings.voiceStyle);
+      setTemperature([content.settings.temperature]);
+      setContentType(content.settings.contentType);
+      setTargetLength(content.settings.targetLength);
+    }
+    
+    if (content.category) {
+      const [category, template] = content.category.split(" - ");
+      setSelectedCategory(category);
+      setSelectedTemplate(template);
+    }
+    
+    setActiveTab("template");
+    
+    toast({
+      title: "Đã tải nội dung",
+      description: "Nội dung đã lưu đã được tải vào trình soạn thảo.",
+    });
+  };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -169,13 +299,16 @@ const WritingInterface = () => {
         </div>
 
         <div className="max-w-5xl mx-auto">
-          <Tabs defaultValue="template" className="w-full">
-            <TabsList className="grid grid-cols-2 mb-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid grid-cols-3 mb-8">
               <TabsTrigger value="template" className="text-lg py-3">
-                <FileText className="mr-2" size={18} /> Theo mẫu
+                <FileText className="mr-2" size={18} /> Tạo mới
               </TabsTrigger>
-              <TabsTrigger value="custom" className="text-lg py-3">
-                <Sparkles className="mr-2" size={18} /> Tùy chỉnh
+              <TabsTrigger value="styles" className="text-lg py-3">
+                <Palette className="mr-2" size={18} /> Giọng điệu
+              </TabsTrigger>
+              <TabsTrigger value="history" className="text-lg py-3">
+                <History className="mr-2" size={18} /> Lịch sử
               </TabsTrigger>
             </TabsList>
 
@@ -218,36 +351,54 @@ const WritingInterface = () => {
                     </div>
                   )}
 
-                  {selectedTemplate && (
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium mb-2">Thông tin cụ thể</label>
-                      <Textarea
-                        placeholder="Nhập thông tin chi tiết về nhu cầu của bạn..."
-                        className="min-h-[120px] mb-2"
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                      />
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium mb-2">Yêu cầu của bạn</label>
+                    <Textarea
+                      placeholder={selectedTemplate 
+                        ? "Nhập thông tin chi tiết về nhu cầu của bạn..." 
+                        : "Nhập yêu cầu nội dung của bạn..."}
+                      className="min-h-[120px] mb-2"
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                    />
+                    {selectedTemplate && (
                       <p className="text-sm text-gray-500">
                         Ví dụ: Tên sản phẩm, đặc điểm, đối tượng khách hàng, ...
                       </p>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="custom">
+            <TabsContent value="styles">
               <Card>
                 <CardContent className="pt-6">
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium mb-2">Yêu cầu của bạn</label>
-                    <Textarea
-                      placeholder="Nhập yêu cầu nội dung của bạn..."
-                      className="min-h-[120px]"
-                      value={prompt}
-                      onChange={(e) => setPrompt(e.target.value)}
-                    />
-                  </div>
+                  <h3 className="text-xl font-medium mb-4">Chọn giọng điệu và phong cách</h3>
+                  <p className="text-gray-600 mb-6">
+                    Lựa chọn các mẫu giọng điệu và phong cách để tối ưu hóa nội dung của bạn
+                  </p>
+                  <ToneStyleTemplates 
+                    onSelectTemplate={handleSelectToneTemplate} 
+                    selectedTemplateId={selectedToneTemplateId}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="history">
+              <Card>
+                <CardContent className="pt-6">
+                  <h3 className="text-xl font-medium mb-4">Lịch sử nội dung đã tạo</h3>
+                  <p className="text-gray-600 mb-6">
+                    Truy cập và quản lý những nội dung bạn đã lưu trước đây
+                  </p>
+                  <ContentHistory
+                    savedContents={savedContents}
+                    onSelect={handleSelectFromHistory}
+                    onDelete={handleDeleteContent}
+                    onEdit={handleEditContent}
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -407,6 +558,14 @@ const WritingInterface = () => {
                         <Download size={16} className="mr-1" />
                         Tải xuống
                       </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setShowSaveDialog(true)}
+                      >
+                        <Save size={16} className="mr-1" />
+                        Lưu nội dung
+                      </Button>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button variant="outline" size="sm">
@@ -450,6 +609,37 @@ const WritingInterface = () => {
                   <div className="p-4 bg-gray-50 rounded-md text-left whitespace-pre-wrap">
                     {generatedContent}
                   </div>
+
+                  {showSaveDialog && (
+                    <div className="mt-4 border-t pt-4">
+                      <h4 className="font-medium mb-2">Lưu nội dung này</h4>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="content-title" className="mb-1 block">Tiêu đề</Label>
+                          <Input
+                            id="content-title"
+                            placeholder="Nhập tiêu đề để lưu..."
+                            value={contentTitle}
+                            onChange={(e) => setContentTitle(e.target.value)}
+                          />
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button onClick={handleSaveContent} className="flex-1">
+                            <Save className="mr-2 h-4 w-4" /> Lưu nội dung
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            onClick={() => {
+                              setShowSaveDialog(false);
+                              setContentTitle("");
+                            }}
+                          >
+                            Hủy
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
