@@ -275,10 +275,16 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
                 <History className="mr-2" size={18} /> Lịch sử
               </TabsTrigger>
               <TabsTrigger value="images" className="text-lg py-3">
-                {/* Add Icon here if needed */} Images
+                <ImageIcon className="mr-2" size={18} /> Hình ảnh
               </TabsTrigger>
               <TabsTrigger value="import" className="text-lg py-3">
-                {/* Add Icon here if needed */} Import
+                <FileUp className="mr-2" size={18} /> Nhập liệu
+              </TabsTrigger>
+              <TabsTrigger value="team" className="text-lg py-3">
+                <Users className="mr-2" size={18} /> Nhóm
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="text-lg py-3">
+                <BarChart className="mr-2" size={18} /> Thống kê
               </TabsTrigger>
             </TabsList>
 
@@ -323,6 +329,50 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
                 setPrompt(content);
                 setActiveTab("template");
               }} />
+            </TabsContent>
+
+            <TabsContent value="team">
+              <TeamCollaboration
+                members={[
+                  {
+                    id: '1',
+                    name: 'Người dùng mẫu',
+                    email: 'user@example.com',
+                    role: 'editor'
+                  }
+                ]}
+                onInviteMember={(email) => {
+                  toast({
+                    title: "Đã gửi lời mời",
+                    description: `Đã gửi lời mời đến ${email}`,
+                  });
+                }}
+                onUpdateRole={(memberId, role) => {
+                  toast({
+                    title: "Đã cập nhật vai trò",
+                    description: "Thay đổi vai trò thành công",
+                  });
+                }}
+              />
+            </TabsContent>
+
+            <TabsContent value="analytics">
+              <AnalyticsDashboard
+                data={{
+                  contentGenerated: 150,
+                  averageLength: 750,
+                  topCategories: [
+                    { name: "Blog", count: 45 },
+                    { name: "Mạng xã hội", count: 35 },
+                    { name: "Email", count: 20 }
+                  ],
+                  dailyStats: [
+                    { date: "2024-03-01", generations: 12, engagementScore: 85 },
+                    { date: "2024-03-02", generations: 15, engagementScore: 88 },
+                    { date: "2024-03-03", generations: 10, engagementScore: 82 }
+                  ]
+                }}
+              />
             </TabsContent>
           </Tabs>
         </div>
