@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
@@ -37,18 +36,18 @@ const ProfilePage = () => {
       
       try {
         const { data, error } = await supabase
-          .from("profiles")
+          .from('profiles')
           .select("*")
           .eq("id", user.id)
           .single();
           
         if (error) throw error;
         
-        setProfile(data as UserProfile);
-        setUsername(data.username || "");
-        setFullName(data.full_name || "");
+        const profileData = data as unknown as UserProfile;
+        setProfile(profileData);
+        setUsername(profileData.username || "");
+        setFullName(profileData.full_name || "");
 
-        // Fetch user content (most recent 10)
         const { data: contentData, error: contentError } = await supabase
           .from('user_content')
           .select('*')
@@ -57,9 +56,8 @@ const ProfilePage = () => {
           .limit(10);
 
         if (contentError) throw contentError;
-        setContentHistory(contentData as UserContent[] || []);
+        setContentHistory(contentData as unknown as UserContent[] || []);
 
-        // Fetch aggregate statistics
         const { data: statsData, error: statsError } = await supabase
           .from('content_analytics')
           .select('*')
@@ -69,7 +67,7 @@ const ProfilePage = () => {
         if (statsError && statsError.code !== 'PGRST116') throw statsError;
         
         if (statsData) {
-          const analyticsData = statsData as ContentAnalytics;
+          const analyticsData = statsData as unknown as ContentAnalytics;
           setUsageStats({
             contentCount: analyticsData.total_content_count || 0,
             totalTokensUsed: analyticsData.total_tokens_used || 0
@@ -125,7 +123,6 @@ const ProfilePage = () => {
     }
   };
   
-  // If user is not logged in, redirect to login page
   if (!user && !isLoading) {
     return <Navigate to="/auth" replace />;
   }
@@ -306,7 +303,7 @@ const ProfilePage = () => {
               {contentHistory.length === 0 ? (
                 <div className="text-center py-8">
                   <BookOpenText className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-muted-foreground">Bạn chưa tạo nội dung nào</p>
+                  <p className="text-muted-foreground">Bạn chưa tạo nội dung n��o</p>
                   <Button variant="outline" className="mt-4" onClick={() => navigate('/')}>
                     Tạo nội dung đầu tiên
                   </Button>

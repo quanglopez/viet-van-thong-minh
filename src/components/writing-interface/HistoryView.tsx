@@ -1,9 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { UserContent } from '@/types/database';
-
-interface SavedContent extends UserContent {}
+import { SavedContent } from '../writing-interface/types';
 
 interface HistoryViewProps {
   savedContents: SavedContent[];

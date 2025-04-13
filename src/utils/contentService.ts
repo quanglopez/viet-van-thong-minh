@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -299,7 +298,7 @@ export async function getUserProfile(): Promise<{ data: UserProfile | null; erro
       .single();
 
     return {
-      data: data as UserProfile || null,
+      data: data as unknown as UserProfile || null,
       error: error ? new Error(error.message) : null
     };
   } catch (error) {

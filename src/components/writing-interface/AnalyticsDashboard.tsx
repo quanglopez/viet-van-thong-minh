@@ -1,116 +1,151 @@
 
 import React from 'react';
-import { Card } from "@/components/ui/card";
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend,
-  ResponsiveContainer
-} from 'recharts';
-
-interface AnalyticsData {
-  contentGenerated: number;
-  averageLength: number;
-  topCategories: { name: string; count: number }[];
-  dailyStats: Array<{
-    date: string;
-    generations: number;
-    engagementScore: number;
-  }>;
-  topicAnalysis: Array<{
-    topic: string;
-    count: number;
-    engagement: number;
-  }>;
-}
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+import { AnalyticsData, TopicAnalysis } from './types';
 
 interface AnalyticsDashboardProps {
   data: AnalyticsData;
 }
 
+const COLORS = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'];
+
 const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ data }) => {
+  const { contentGenerated, averageLength, topCategories, dailyStats, topicAnalysis = [] } = data;
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-6">
-          <h4 className="text-sm font-medium text-gray-500">Nội dung đã tạo</h4>
-          <p className="text-3xl font-bold mt-2">{data.contentGenerated}</p>
-        </Card>
-        
-        <Card className="p-6">
-          <h4 className="text-sm font-medium text-gray-500">Độ dài trung bình</h4>
-          <p className="text-3xl font-bold mt-2">{data.averageLength} từ</p>
-        </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Thống kê tổng quan</CardTitle>
+          <CardDescription>
+            Tổng quan về hoạt động tạo nội dung của bạn
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="bg-muted/40">
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">Nội dung đã tạo</p>
+                <p className="text-3xl font-bold">{contentGenerated}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-muted/40">
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">Độ dài trung bình</p>
+                <p className="text-3xl font-bold">{averageLength}</p>
+              </CardContent>
+            </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card className="p-6">
-          <h4 className="text-sm font-medium text-gray-500">Danh mục phổ biến</h4>
-          <div className="mt-2">
-            {data.topCategories.slice(0, 3).map((category, index) => (
-              <div key={index} className="flex justify-between items-center mt-2">
-                <span>{category.name}</span>
-                <span className="font-medium">{category.count}</span>
+      <Card>
+        <CardHeader>
+          <CardTitle>Danh mục phổ biến</CardTitle>
+          <CardDescription>
+            Các danh mục nội dung được sử dụng nhiều nhất
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={topCategories}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="count"
+                  nameKey="name"
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                >
+                  {topCategories.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Hoạt động theo thời gian</CardTitle>
+          <CardDescription>
+            Số lượng nội dung được tạo trong 7 ngày gần đây
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={dailyStats}
+                margin={{
+                  top: 5,
+                  right: 30,
+                  left: 20,
+                  bottom: 5,
+                }}
+              >
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="generations" fill="#8884d8" name="Số lượng" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Phân tích chủ đề</CardTitle>
+          <CardDescription>
+            Các chủ đề và tương tác của người dùng
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {topicAnalysis.map((topic) => (
+              <div key={topic.topic} className="space-y-1">
+                <div className="flex justify-between">
+                  <p className="font-medium">{topic.topic}</p>
+                  <p className="text-sm text-muted-foreground">{topic.count} nội dung</p>
+                </div>
+                <div className="relative h-2 w-full bg-muted rounded overflow-hidden">
+                  <div
+                    className="absolute h-full bg-primary"
+                    style={{
+                      width: `${(topic.engagement / 100) * 100}%`,
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">Tương tác: {topic.engagement}%</p>
               </div>
             ))}
           </div>
-        </Card>
-      </div>
-
-      <Card className="p-6">
-        <h4 className="text-lg font-medium mb-4">Thống kê theo ngày</h4>
-        <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data.dailyStats}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="generations" 
-                stroke="#8884d8" 
-                name="Số lượt tạo"
-              />
-              <Line 
-                type="monotone" 
-                dataKey="engagementScore" 
-                stroke="#82ca9d" 
-                name="Điểm tương tác"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </Card>
-
-      <Card className="p-6">
-        <h4 className="text-lg font-medium mb-4">Phân tích nội dung theo chủ đề</h4>
-        <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data.topicAnalysis}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="topic" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="count" 
-                stroke="#8884d8" 
-                name="Số lượng bài viết"
-              />
-              <Line 
-                type="monotone" 
-                dataKey="engagement" 
-                stroke="#82ca9d" 
-                name="Mức độ tương tác"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+        </CardContent>
       </Card>
     </div>
   );

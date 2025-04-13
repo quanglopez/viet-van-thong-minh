@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Palette, History, Image as ImageIcon, FileUp, Users, BarChart } from "lucide-react";
@@ -18,9 +19,8 @@ import DocumentImport from "./writing-interface/DocumentImport";
 import TeamCollaboration from "./writing-interface/TeamCollaboration";
 import AnalyticsDashboard from "./writing-interface/AnalyticsDashboard";
 import { templateCategories } from "./writing-interface/data";
-import { ToneTemplate } from "./ToneStyleTemplates";
-import { SavedContent } from "./ContentHistory";
-import { WritingInterfaceProps } from "./writing-interface/types";
+import { ToneTemplate } from "@/types/database";
+import { WritingInterfaceProps, SavedContent } from "./writing-interface/types";
 
 const WritingInterface: React.FC<WritingInterfaceProps> = () => {
   const { toast } = useToast();
@@ -60,7 +60,11 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
       try {
         const parsedData = JSON.parse(savedContentData).map((item: any) => ({
           ...item,
-          timestamp: new Date(item.timestamp)
+          created_at: item.created_at || new Date().toISOString(),
+          updated_at: item.updated_at || new Date().toISOString(),
+          user_id: item.user_id || 'local-user',
+          // For backward compatibility
+          timestamp: item.timestamp ? new Date(item.timestamp) : new Date()
         }));
         setSavedContents(parsedData);
       } catch (error) {
@@ -103,7 +107,10 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
       title: contentTitle,
       content: generatedContent,
       prompt: prompt,
-      timestamp: new Date(),
+      user_id: 'local-user',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      timestamp: new Date(), // For backward compatibility
       category: selectedCategory && selectedTemplate ? `${selectedCategory} - ${selectedTemplate}` : undefined,
       settings: {
         tone,
@@ -530,6 +537,11 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
                     { date: "2024-03-01", generations: 12, engagementScore: 85 },
                     { date: "2024-03-02", generations: 15, engagementScore: 88 },
                     { date: "2024-03-03", generations: 10, engagementScore: 82 }
+                  ],
+                  topicAnalysis: [
+                    { topic: "Công nghệ", count: 25, engagement: 85 },
+                    { topic: "Du lịch", count: 18, engagement: 92 },
+                    { topic: "Thời trang", count: 15, engagement: 78 }
                   ]
                 }}
               />

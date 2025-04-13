@@ -1,5 +1,5 @@
 
-import { SavedContent } from "../ContentHistory";
+import { ToneTemplate, ContentTemplate, UserContent, UsageStatistics, ContentAnalytics } from "@/types/database";
 
 export interface TopicAnalysis {
   topic: string;
@@ -26,4 +26,16 @@ export interface ContentGenerationSettings {
   contentType: string;
   targetLength: string;
   temperature: number[];
+}
+
+export interface AnalyticsData {
+  contentGenerated: number;
+  averageLength: number;
+  topCategories: { name: string; count: number; }[];
+  dailyStats: { date: string; generations: number; engagementScore: number; }[];
+  topicAnalysis?: TopicAnalysis[];
+}
+
+export interface SavedContent extends UserContent {
+  timestamp?: Date; // For backward compatibility
 }
