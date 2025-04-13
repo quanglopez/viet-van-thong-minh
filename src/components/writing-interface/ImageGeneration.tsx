@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Image, Loader2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
+import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ImageGenerationProps {
   onImageGenerated?: (url: string) => void;
@@ -24,24 +26,24 @@ const ImageGeneration: React.FC<ImageGenerationProps> = ({ onImageGenerated }) =
     
     setIsGenerating(true);
     try {
-      const response = await fetch('/api/generate-image', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Call our Supabase Edge Function for image generation
+      const { data, error } = await supabase.functions.invoke("generate-image", {
+        body: {
           prompt,
           style,
           size,
           quality: quality[0]
-        })
+        }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate image');
+      if (error) {
+        throw new Error(`Error: ${error.message || "Could not generate image"}`);
       }
 
-      const data = await response.json();
+      if (!data || !data.imageUrl) {
+        throw new Error("No image data returned");
+      }
+
       setPreviewUrl(data.imageUrl);
       onImageGenerated?.(data.imageUrl);
       

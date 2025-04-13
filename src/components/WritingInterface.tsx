@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Palette, History, Image, FileUp, Users, BarChart } from "lucide-react";
+import { FileText, Palette, History, Image as ImageIcon, FileUp, Users, BarChart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateWithGemini } from "@/utils/geminiAI";
 import { v4 as uuidv4 } from 'uuid';
@@ -12,6 +12,11 @@ import HistoryView from "./writing-interface/HistoryView";
 import AdvancedSettings from "./writing-interface/AdvancedSettings";
 import GenerateButton from "./writing-interface/GenerateButton";
 import GeneratedContent from "./writing-interface/GeneratedContent";
+import ComparisonView from "./writing-interface/ComparisonView";
+import ImageGeneration from "./writing-interface/ImageGeneration";
+import DocumentImport from "./writing-interface/DocumentImport";
+import TeamCollaboration from "./writing-interface/TeamCollaboration";
+import AnalyticsDashboard from "./writing-interface/AnalyticsDashboard";
 import { templateCategories } from "./writing-interface/data";
 import { ToneTemplate } from "./ToneStyleTemplates";
 import { SavedContent } from "./ContentHistory";
@@ -49,7 +54,6 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("template");
 
-  // Load saved content from localStorage
   useEffect(() => {
     const savedContentData = localStorage.getItem('savedContents');
     if (savedContentData) {
@@ -65,7 +69,6 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
     }
   }, []);
 
-  // Save content to localStorage when it changes
   useEffect(() => {
     if (savedContents.length > 0) {
       localStorage.setItem('savedContents', JSON.stringify(savedContents));
@@ -227,6 +230,75 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
     }
   };
 
+  const handleGenerateComparison = async () => {
+    if (!prompt.trim()) {
+      toast({
+        title: "Thiếu thông tin",
+        description: "Vui lòng nhập yêu cầu nội dung của bạn",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    setComparisonContents([]);
+
+    try {
+      const toneVariations = [
+        { tone: "professional", dialect: "neutral" },
+        { tone: "friendly", dialect: "neutral" }
+      ];
+
+      const results = await Promise.all(toneVariations.map(async (variation) => {
+        let effectivePrompt = prompt;
+        if (selectedTemplate && selectedCategory) {
+          effectivePrompt = `[${selectedCategory} - ${selectedTemplate}]\n${prompt}`;
+        }
+
+        const result = await generateWithGemini(effectivePrompt, {
+          temperature: temperature[0],
+          maxTokens: 1024,
+          tone: variation.tone,
+          dialect: variation.dialect,
+          voiceStyle,
+          seoOptimize,
+          targetLength,
+          contentType
+        });
+
+        if (result.error) {
+          throw new Error(result.error);
+        }
+
+        return {
+          id: uuidv4(),
+          content: result.text,
+          settings: {
+            tone: variation.tone,
+            dialect: variation.dialect,
+          }
+        };
+      }));
+
+      setComparisonContents(results);
+      setActiveTab("comparison");
+
+      toast({
+        title: "So sánh nội dung thành công!",
+        description: "Đã tạo các phiên bản khác nhau để so sánh.",
+      });
+    } catch (error) {
+      console.error("Error generating comparison:", error);
+      toast({
+        title: "Lỗi khi tạo nội dung so sánh",
+        description: error instanceof Error ? error.message : "Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleCopy = () => {
     navigator.clipboard.writeText(generatedContent);
     toast({
@@ -264,7 +336,7 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
 
         <div className="max-w-5xl mx-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-4 mb-8"> {/* Added a column for the new tabs */}
+            <TabsList className="grid grid-cols-7 mb-8">
               <TabsTrigger value="template" className="text-lg py-3">
                 <FileText className="mr-2" size={18} /> Tạo mới
               </TabsTrigger>
@@ -298,6 +370,38 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
                 prompt={prompt}
                 setPrompt={setPrompt}
               />
+              
+              <div className="mt-8 space-y-4">
+                <GenerateButton 
+                  onClick={handleGenerate}
+                  isGenerating={isGenerating}
+                  disabled={!prompt.trim() || isGenerating}
+                />
+                
+                <div className="text-center">
+                  <button
+                    onClick={handleGenerateComparison}
+                    disabled={!prompt.trim() || isGenerating}
+                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                  >
+                    Tạo nhiều phiên bản để so sánh
+                  </button>
+                </div>
+              </div>
+
+              {generatedContent && (
+                <GeneratedContent
+                  content={generatedContent}
+                  onCopy={handleCopy}
+                  onDownload={handleDownload}
+                  onSave={() => setShowSaveDialog(true)}
+                  showSaveDialog={showSaveDialog}
+                  contentTitle={contentTitle}
+                  setContentTitle={setContentTitle}
+                  handleSaveContent={handleSaveContent}
+                  setShowSaveDialog={setShowSaveDialog}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="styles">
@@ -316,11 +420,67 @@ const WritingInterface: React.FC<WritingInterfaceProps> = () => {
               />
             </TabsContent>
 
+            <TabsContent value="comparison">
+              {comparisonContents.length > 0 ? (
+                <ComparisonView
+                  contents={comparisonContents}
+                  onCopy={content => {
+                    navigator.clipboard.writeText(content);
+                    toast({
+                      title: "Đã sao chép!",
+                      description: "Nội dung đã được sao chép vào clipboard.",
+                    });
+                  }}
+                  onDownload={content => {
+                    const blob = new Blob([content], { type: "text/plain" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "viet-van-content.txt";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    toast({
+                      title: "Đã tải xuống!",
+                      description: "Nội dung đã được tải xuống dưới dạng file văn bản.",
+                    });
+                  }}
+                  onSelect={content => {
+                    setGeneratedContent(content);
+                    setActiveTab("template");
+                    toast({
+                      title: "Đã chọn phiên bản",
+                      description: "Phiên bản đã chọn sẽ được hiển thị trong trình soạn thảo.",
+                    });
+                  }}
+                />
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-500 mb-4">
+                    Chưa có nội dung so sánh nào. Vui lòng tạo nội dung so sánh từ tab "Tạo mới".
+                  </p>
+                  <button
+                    onClick={() => setActiveTab("template")}
+                    className="text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Quay lại tạo nội dung
+                  </button>
+                </div>
+              )}
+            </TabsContent>
+
             <TabsContent value="images">
               <ImageGeneration onImageGenerated={(url) => {
                 setGeneratedContent((prev) => 
                   prev + `\n\n![Generated Image](${url})\n\n`
                 );
+                
+                toast({
+                  title: "Đã thêm hình ảnh",
+                  description: "Hình ảnh đã được thêm vào nội dung của bạn.",
+                });
               }} />
             </TabsContent>
 

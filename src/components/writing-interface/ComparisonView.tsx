@@ -30,7 +30,14 @@ const ComparisonView: React.FC<ComparisonViewProps> = ({
         <Card key={item.id} className="p-4">
           <div className="flex justify-between items-center mb-2">
             <div className="text-sm text-gray-500">
-              Giọng điệu: {item.settings.tone} | Ngôn ngữ: {item.settings.dialect}
+              Giọng điệu: {item.settings.tone === "professional" ? "Chuyên nghiệp" : 
+                          item.settings.tone === "friendly" ? "Thân thiện" : 
+                          item.settings.tone === "persuasive" ? "Thuyết phục" : 
+                          "Trung tính"} | 
+              Ngôn ngữ: {item.settings.dialect === "northern" ? "Miền Bắc" : 
+                        item.settings.dialect === "central" ? "Miền Trung" : 
+                        item.settings.dialect === "southern" ? "Miền Nam" : 
+                        "Trung tính"}
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => onCopy(item.content)}>
