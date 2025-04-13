@@ -2,7 +2,7 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import SubscriptionPlans from '@/components/SubscriptionPlans'; // Changed to default import
+import SubscriptionPlans from '@/components/SubscriptionPlans';
 
 const PricingPage: React.FC = () => {
   return (

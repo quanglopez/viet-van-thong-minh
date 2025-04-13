@@ -7,18 +7,17 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { 
   CopyCheck, 
-  Bookmark, 
-  BookOpen, 
   BadgeCheck, 
-  PencilRuler, 
-  PenLine, 
   Lightbulb, 
-  SendHorizontal
+  SendHorizontal,
+  BookOpen, 
+  PencilRuler, 
+  PenLine
 } from "lucide-react";
 
+// Update the ToneTemplate interface to be compatible with the database type
 export interface ToneTemplate {
   id: string;
   name: string;
@@ -30,6 +29,11 @@ export interface ToneTemplate {
     voiceStyle: string;
     temperature: number;
   };
+  // These fields are optional to make it compatible with database type
+  is_system?: boolean;
+  user_id?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 const toneTemplates: ToneTemplate[] = [
