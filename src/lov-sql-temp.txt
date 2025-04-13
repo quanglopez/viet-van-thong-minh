@@ -1,0 +1,15 @@
+
+-- This is just a temporary file to show the SQL we would run.
+-- In a real project, we would run these SQL commands through the Supabase SQL editor or migrations.
+
+-- Update the profiles table to add the subscription fields
+ALTER TABLE IF EXISTS profiles
+ADD COLUMN IF NOT EXISTS subscription_tier TEXT,
+ADD COLUMN IF NOT EXISTS subscription_start TIMESTAMP WITH TIME ZONE,
+ADD COLUMN IF NOT EXISTS subscription_end TIMESTAMP WITH TIME ZONE,
+ADD COLUMN IF NOT EXISTS monthly_token_limit INTEGER DEFAULT 10000,
+ADD COLUMN IF NOT EXISTS tokens_used INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS last_token_reset TIMESTAMP WITH TIME ZONE DEFAULT now();
+
+-- Note: This is just for reference - in a real implementation, we would define these tables
+-- in Supabase and update types.ts to reflect the structure

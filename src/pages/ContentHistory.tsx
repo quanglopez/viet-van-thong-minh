@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,7 +8,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { 
@@ -23,7 +23,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Search, Filter, Trash, Edit, Eye, Download, ArrowUpDown, BookOpenText } from 'lucide-react';
-import { getUserContent, deleteContent, UserContent } from '@/utils/contentService';
+import { getUserContent, deleteContent } from '@/utils/contentService';
+import { UserContent } from '@/types/database';
 
 const ContentHistory = () => {
   const { user } = useAuth();
@@ -231,7 +232,8 @@ const ContentHistory = () => {
           <PaginationItem>
             <PaginationPrevious 
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} 
-              disabled={currentPage === 1} 
+              aria-disabled={currentPage === 1}
+              className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
             />
           </PaginationItem>
           
@@ -240,7 +242,8 @@ const ContentHistory = () => {
           <PaginationItem>
             <PaginationNext 
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} 
-              disabled={currentPage === totalPages} 
+              aria-disabled={currentPage === totalPages}
+              className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
             />
           </PaginationItem>
         </PaginationContent>
@@ -433,4 +436,4 @@ const ContentHistory = () => {
   );
 };
 
-export default ContentHistory; 
+export default ContentHistory;

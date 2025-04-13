@@ -1,7 +1,9 @@
 
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import ContentHistory, { SavedContent } from "../ContentHistory";
+import { UserContent } from '@/types/database';
+
+interface SavedContent extends UserContent {}
 
 interface HistoryViewProps {
   savedContents: SavedContent[];
@@ -23,12 +25,47 @@ const HistoryView: React.FC<HistoryViewProps> = ({
         <p className="text-gray-600 mb-6">
           Truy cập và quản lý những nội dung bạn đã lưu trước đây
         </p>
-        <ContentHistory
-          savedContents={savedContents}
-          onSelect={onSelect}
-          onDelete={onDelete}
-          onEdit={onEdit}
-        />
+        <div className="space-y-4">
+          {savedContents.length === 0 ? (
+            <p className="text-gray-500 text-center">Chưa có nội dung nào được lưu</p>
+          ) : (
+            savedContents.map((content) => (
+              <div 
+                key={content.id} 
+                className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                onClick={() => onSelect(content)}
+              >
+                <h4 className="font-medium mb-1">{content.title}</h4>
+                <p className="text-sm text-gray-600 line-clamp-2">{content.content}</p>
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-xs text-gray-500">
+                    {new Date(content.created_at).toLocaleString()}
+                  </span>
+                  <div className="flex space-x-2">
+                    <button 
+                      className="text-xs text-blue-600 hover:text-blue-800"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelect(content);
+                      }}
+                    >
+                      Chọn
+                    </button>
+                    <button 
+                      className="text-xs text-red-600 hover:text-red-800"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(content.id);
+                      }}
+                    >
+                      Xóa
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </CardContent>
     </Card>
   );

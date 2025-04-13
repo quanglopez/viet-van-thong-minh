@@ -21,6 +21,11 @@ interface AnalyticsData {
     generations: number;
     engagementScore: number;
   }>;
+  topicAnalysis: Array<{
+    topic: string;
+    count: number;
+    engagement: number;
+  }>;
 }
 
 interface AnalyticsDashboardProps {

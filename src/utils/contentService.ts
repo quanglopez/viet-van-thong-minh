@@ -1,11 +1,14 @@
-import { supabase } from "@/integrations/supabase/client";
-import { Tables } from "@/integrations/supabase/types";
-import { toast } from "@/hooks/use-toast";
 
-export type UserContent = Tables<'user_content'>;
-export type ToneTemplate = Tables<'tone_templates'>;
-export type ContentTemplate = Tables<'content_templates'>;
-export type UserProfile = Tables<'profiles'>;
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import {
+  UserContent,
+  ToneTemplate,
+  ContentTemplate,
+  UserProfile,
+  UsageStatistics,
+  ContentAnalytics
+} from "@/types/database";
 
 /**
  * Get user content items with pagination
@@ -56,7 +59,7 @@ export async function getUserContent(options: {
     const { data, count, error } = await query;
 
     return {
-      data,
+      data: data as UserContent[] || null,
       count: count || 0,
       error: error ? new Error(error.message) : null
     };
@@ -82,7 +85,7 @@ export async function getContentById(id: string): Promise<{ data: UserContent | 
       .single();
 
     return {
-      data,
+      data: data as UserContent || null,
       error: error ? new Error(error.message) : null
     };
   } catch (error) {
@@ -113,7 +116,7 @@ export async function updateContent(
       .single();
 
     return {
-      data,
+      data: data as UserContent || null,
       error: error ? new Error(error.message) : null
     };
   } catch (error) {
@@ -157,7 +160,7 @@ export async function getToneTemplates(): Promise<{ data: ToneTemplate[] | null;
       .order('name');
 
     return {
-      data,
+      data: data as ToneTemplate[] || null,
       error: error ? new Error(error.message) : null
     };
   } catch (error) {
@@ -186,7 +189,7 @@ export async function createToneTemplate(
       .single();
 
     return {
-      data,
+      data: data as ToneTemplate || null,
       error: error ? new Error(error.message) : null
     };
   } catch (error) {
@@ -214,7 +217,7 @@ export async function getContentTemplates(
     const { data, error } = await query.order('name');
 
     return {
-      data,
+      data: data as ContentTemplate[] || null,
       error: error ? new Error(error.message) : null
     };
   } catch (error) {
@@ -241,7 +244,7 @@ export async function getTemplateCategories(): Promise<{ data: string[] | null; 
     }
 
     // Extract unique categories with proper type assertions
-    const categories = [...new Set(data.map(item => item.category as string))];
+    const categories = [...new Set(data.map(item => (item as ContentTemplate).category as string))];
 
     return {
       data: categories,
@@ -273,7 +276,7 @@ export async function createContentTemplate(
       .single();
 
     return {
-      data,
+      data: data as ContentTemplate || null,
       error: error ? new Error(error.message) : null
     };
   } catch (error) {
@@ -296,7 +299,7 @@ export async function getUserProfile(): Promise<{ data: UserProfile | null; erro
       .single();
 
     return {
-      data,
+      data: data as UserProfile || null,
       error: error ? new Error(error.message) : null
     };
   } catch (error) {
@@ -314,7 +317,7 @@ export async function getUserProfile(): Promise<{ data: UserProfile | null; erro
 export async function getUserUsageStats(
   period: 'day' | 'week' | 'month' | 'year' = 'month'
 ): Promise<{ 
-  data: { date: string; tokens_used: number; content_count: number }[] | null; 
+  data: UsageStatistics[] | null; 
   error: Error | null 
 }> {
   try {
@@ -344,7 +347,7 @@ export async function getUserUsageStats(
     const { data, error } = await query.order('date');
 
     return {
-      data,
+      data: data as UsageStatistics[] || null,
       error: error ? new Error(error.message) : null
     };
   } catch (error) {
@@ -391,4 +394,4 @@ export async function canGenerateContent(estimatedTokens: number): Promise<{
       error: error instanceof Error ? error : new Error('Unknown error')
     };
   }
-} 
+}

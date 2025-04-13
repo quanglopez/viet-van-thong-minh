@@ -67,12 +67,19 @@ const SeoAnalysis: React.FC<SeoAnalysisProps> = ({ content }) => {
   const seoScores = analyzeSeo(content);
   const overallScore = Math.round(seoScores.reduce((acc, curr) => acc + curr.score, 0) / seoScores.length);
 
+  // Helper function to get badge variant based on score
+  const getBadgeVariant = (score: number) => {
+    if (score > 80) return "default"; // Instead of "success"
+    if (score > 60) return "secondary"; // Instead of "warning"
+    return "destructive";
+  };
+
   return (
     <Card className="p-4">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-medium">Phân tích SEO</h3>
-          <Badge variant={overallScore > 80 ? "success" : overallScore > 60 ? "warning" : "destructive"}>
+          <Badge variant={getBadgeVariant(overallScore)}>
             {overallScore}/100
           </Badge>
         </div>

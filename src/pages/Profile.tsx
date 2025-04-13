@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
@@ -7,22 +8,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { CalendarDays, Edit, Key, LogOut, Trash, History, BookOpenText, BarChart3 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-
-type Profile = Tables<"profiles">;
-type UserContent = Tables<'user_content'>;
+import { UserProfile, UserContent, ContentAnalytics } from "@/types/database";
 
 const ProfilePage = () => {
   const { user, session, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [username, setUsername] = useState("");
@@ -46,7 +44,7 @@ const ProfilePage = () => {
           
         if (error) throw error;
         
-        setProfile(data);
+        setProfile(data as UserProfile);
         setUsername(data.username || "");
         setFullName(data.full_name || "");
 
@@ -59,7 +57,7 @@ const ProfilePage = () => {
           .limit(10);
 
         if (contentError) throw contentError;
-        setContentHistory(contentData || []);
+        setContentHistory(contentData as UserContent[] || []);
 
         // Fetch aggregate statistics
         const { data: statsData, error: statsError } = await supabase
@@ -71,9 +69,10 @@ const ProfilePage = () => {
         if (statsError && statsError.code !== 'PGRST116') throw statsError;
         
         if (statsData) {
+          const analyticsData = statsData as ContentAnalytics;
           setUsageStats({
-            contentCount: statsData.total_content_count || 0,
-            totalTokensUsed: statsData.total_tokens_used || 0
+            contentCount: analyticsData.total_content_count || 0,
+            totalTokensUsed: analyticsData.total_tokens_used || 0
           });
         }
       } catch (error: any) {
@@ -159,7 +158,7 @@ const ProfilePage = () => {
     }).format(date);
   };
 
-  const getSubscriptionName = (tier: string | null | undefined) => {
+  const getSubscriptionName = (tier: string | undefined) => {
     switch (tier) {
       case 'free': return 'Miễn phí';
       case 'basic': return 'Cơ bản';
@@ -171,10 +170,11 @@ const ProfilePage = () => {
 
   const getTokenUsagePercentage = () => {
     if (!profile) return 0;
-    return Math.min(100, Math.round((profile.tokens_used / profile.monthly_token_limit) * 100));
+    return profile.monthly_token_limit ? 
+      Math.min(100, Math.round((profile.tokens_used / profile.monthly_token_limit) * 100)) : 0;
   };
 
-  const getSubscriptionColor = (tier: string | null | undefined) => {
+  const getSubscriptionColor = (tier: string | undefined) => {
     switch (tier) {
       case 'free': return 'bg-gray-100 text-gray-800';
       case 'basic': return 'bg-blue-100 text-blue-800';
