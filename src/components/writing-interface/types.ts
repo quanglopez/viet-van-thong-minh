@@ -1,6 +1,7 @@
 
 import { ToneTemplate as DBToneTemplate, ContentTemplate, UserContent, UsageStatistics, ContentAnalytics } from "@/types/database";
 import { ToneTemplate as UIToneTemplate } from "@/components/ToneStyleTemplates";
+import { BadgeCheck, Lightbulb, SendHorizontal, BookOpen, PencilRuler, PenLine } from "lucide-react";
 
 export interface TopicAnalysis {
   topic: string;
@@ -59,8 +60,6 @@ export const convertDBToneTemplateToUI = (template: DBToneTemplate): UIToneTempl
 // Helper function to get an icon based on template name
 function getIconForTemplate(name: string) {
   // Simple implementation, you might want to enhance this
-  import { BadgeCheck, Lightbulb, SendHorizontal, BookOpen, PencilRuler, PenLine } from "lucide-react";
-  
   switch (name.toLowerCase()) {
     case 'chuyên nghiệp':
       return <BadgeCheck className="h-6 w-6 text-blue-500" />;
