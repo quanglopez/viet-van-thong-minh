@@ -148,8 +148,8 @@ const updateTokenUsage = async (
     })
 }
 
-// Generate content using Claude API
-const generateWithClaude = async (
+// Generate content using OpenRouter API
+const generateWithOpenRouter = async (
   prompt: string,
   options: {
     temperature?: number;
@@ -157,8 +157,8 @@ const generateWithClaude = async (
     systemMessage?: string;
   }
 ): Promise<GenerationResponse> => {
-  const API_URL = 'https://api.anthropic.com/v1/messages'
-  const API_KEY = Deno.env.get('CLAUDE_API_KEY')
+  const API_URL = 'https://openrouter.ai/api/v1/chat/completions'
+  const API_KEY = Deno.env.get('OPENROUTER_API_KEY')
 
   if (!API_KEY) {
     return {
@@ -171,77 +171,9 @@ const generateWithClaude = async (
 
   const headers = {
     'Content-Type': 'application/json',
-    'x-api-key': API_KEY,
-    'anthropic-version': '2023-06-01'
-  }
-
-  const requestBody = {
-    model: 'claude-3-opus-20240229',
-    max_tokens: maxTokens,
-    temperature: temperature,
-    messages: [
-      {
-        role: 'user',
-        content: prompt
-      }
-    ],
-    system: systemMessage
-  }
-
-  try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(requestBody)
-    })
-
-    const data = await response.json()
-
-    if (data.error) {
-      console.error('API Error:', data.error)
-      return {
-        text: '',
-        error: `API Error: ${data.error.message || 'Unknown error'}`
-      }
-    }
-
-    return {
-      text: data.content[0].text,
-      usedTokens: data.usage?.input_tokens + data.usage?.output_tokens || 0
-    }
-  } catch (error) {
-    console.error('Error calling Claude API:', error)
-    return {
-      text: '',
-      error: `Error: ${error.message || 'Unknown error'}`
-    }
-  }
-}
-
-// Generate content using OpenAI API
-const generateWithOpenAI = async (
-  prompt: string,
-  options: {
-    temperature?: number;
-    maxTokens?: number;
-    systemMessage?: string;
-  }
-): Promise<GenerationResponse> => {
-  const API_URL = 'https://api.openai.com/v1/chat/completions'
-  const API_KEY = Deno.env.get('OPENAI_API_KEY')
-
-  if (!API_KEY) {
-    return {
-      text: '',
-      error: 'API key not configured'
-    }
-  }
-
-  const { temperature = 0.7, maxTokens = 1024, systemMessage } = options
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${API_KEY}`
+    'Authorization': `Bearer ${API_KEY}`,
+    'HTTP-Referer': 'https://vietvan.app',
+    'X-Title': 'VietVan Content Generator'
   }
 
   const messages = []
@@ -258,14 +190,17 @@ const generateWithOpenAI = async (
     content: prompt
   })
 
+  // Default to Claude Haiku because it's good for Vietnamese content
+  // Other options include "anthropic/claude-3-haiku", "anthropic/claude-3-opus", "meta-llama/llama-3-70b-instruct"
   const requestBody = {
-    model: 'gpt-4-turbo',
+    model: "anthropic/claude-3-haiku", 
     messages,
     max_tokens: maxTokens,
     temperature: temperature
   }
 
   try {
+    console.log("Calling OpenRouter API with:", JSON.stringify(requestBody))
     const response = await fetch(API_URL, {
       method: 'POST',
       headers,
@@ -278,16 +213,17 @@ const generateWithOpenAI = async (
       console.error('API Error:', data.error)
       return {
         text: '',
-        error: `API Error: ${data.error.message || 'Unknown error'}`
+        error: `API Error: ${data.error.message || JSON.stringify(data.error)}`
       }
     }
 
+    console.log("OpenRouter response:", JSON.stringify(data))
     return {
       text: data.choices[0].message.content,
       usedTokens: data.usage?.total_tokens || 0
     }
   } catch (error) {
-    console.error('Error calling OpenAI API:', error)
+    console.error('Error calling OpenRouter API:', error)
     return {
       text: '',
       error: `Error: ${error.message || 'Unknown error'}`
@@ -316,7 +252,7 @@ const formatSystemMessage = (options: GenerationRequest): string => {
   if (dialect === 'northern') {
     systemMessage += ' Sử dụng ngôn ngữ và từ vựng phổ biến ở miền Bắc Việt Nam.'
   } else if (dialect === 'central') {
-    systemMessage += ' Sử dụng ngôn ngữ và từ vựng phổ biến ở miền Trung Việt Nam.'
+    systemMessage += ' Sử d��ng ngôn ngữ và từ vựng phổ biến ở miền Trung Việt Nam.'
   } else if (dialect === 'southern') {
     systemMessage += ' Sử dụng ngôn ngữ và từ vựng phổ biến ở miền Nam Việt Nam.'
   }
@@ -380,7 +316,7 @@ serve(async (req) => {
     const requestData: GenerationRequest = await req.json()
     const { 
       prompt, 
-      model = 'claude', 
+      model = 'openrouter', 
       temperature = 0.7, 
       max_tokens = 1024,
       ...otherOptions 
@@ -416,23 +352,12 @@ serve(async (req) => {
     // Prepare the system message
     const systemMessage = formatSystemMessage(requestData)
 
-    // Generate content based on selected model
-    let result: GenerationResponse
-    
-    if (model === 'openai') {
-      result = await generateWithOpenAI(prompt, {
-        temperature,
-        maxTokens: max_tokens,
-        systemMessage
-      })
-    } else {
-      // Default to Claude
-      result = await generateWithClaude(prompt, {
-        temperature,
-        maxTokens: max_tokens,
-        systemMessage
-      })
-    }
+    // Generate content using OpenRouter
+    const result = await generateWithOpenRouter(prompt, {
+      temperature,
+      maxTokens: max_tokens,
+      systemMessage
+    })
 
     // If successful, update token usage
     if (result.text && !result.error) {
@@ -443,7 +368,7 @@ serve(async (req) => {
         prompt,
         result.text,
         {
-          model,
+          model: 'openrouter',
           temperature,
           max_tokens,
           ...otherOptions
@@ -464,4 +389,4 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }
-}) 
+})

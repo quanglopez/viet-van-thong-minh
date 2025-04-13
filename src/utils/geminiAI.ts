@@ -23,7 +23,7 @@ export async function generateWithGemini(prompt: string, options: {
     const { data, error } = await supabase.functions.invoke("generate-content", {
       body: {
         prompt,
-        model: "claude", // Using Claude by default
+        model: "openrouter", // Using OpenRouter by default
         temperature: options.temperature || 0.7,
         max_tokens: options.maxTokens || 1024,
         tone: options.tone || "professional",
